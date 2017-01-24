@@ -542,9 +542,9 @@ if (doReactome == "yes")
                                 universe = universe
   )
   
-reactome.writeout <- (summary(reactome.out))
-
-if (length(reactome.writeout == 0))
+reactome.writeout <- (as.data.frame(reactome.out))
+  
+  if (nrow(reactome.writeout) == 0)
   {
     fail.reactome = 1
     cat(c("Reactome analysis identified no enriched pathways","Probably too few IDs"),
