@@ -309,6 +309,7 @@ if (doGO == "yes")
     
     if (nrow(top.result.BP) > 0)
     {
+      top.result.BP$Pvalue[top.result.BP$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0
       max.y.plot = 1.2*(max(-log10(top.result.BP$Pvalue)))
       sig.BP.plot <-
         ggplot(data = top.result.BP,
@@ -319,6 +320,7 @@ if (doGO == "yes")
         geom_point() +
         scale_color_continuous("GOI count")+
         scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
@@ -392,7 +394,8 @@ if (doGO == "yes")
     
    if (nrow(top.result.MF) > 0)
     {
-      max.y.plot = 1.2*(max(-log10(top.result.MF$Pvalue)))
+     top.result.MF$Pvalue[top.result.MF$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0 
+     max.y.plot = 1.2*(max(-log10(top.result.MF$Pvalue)))
       sig.MF.plot <-
         ggplot(data = top.result.MF,
                aes(x = as.factor(Term), y = -log10(top.result.MF$Pvalue),
@@ -402,6 +405,7 @@ if (doGO == "yes")
         geom_point() +
         scale_color_continuous("GOI count")+
         scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
@@ -471,6 +475,7 @@ if (doGO == "yes")
     
     if (nrow(top.result.CC) > 0)
     {
+      top.result.CC$Pvalue[top.result.CC$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0
       max.y.plot = 1.2*(max(-log10(top.result.CC$Pvalue)))
       sig.CC.plot <-
         ggplot(data = top.result.CC,
@@ -481,6 +486,7 @@ if (doGO == "yes")
         geom_point() +
         scale_color_continuous("GOI count")+
         scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
@@ -737,6 +743,7 @@ if (doKEGG == "yes")
         geom_point() +
         scale_color_continuous("GOI count")+
         scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
