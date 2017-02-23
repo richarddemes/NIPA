@@ -29,7 +29,8 @@ goi.list <- "test.ids" # change to input gene list
 working.directory = "~/NIPA/"  # change to working directory where you want output 
 
 species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish"
-
+outfile.prefix <- "day1.u.FC2" # prefix attached to output files. 
+  
 # if not installed you will need to download the appropriate species bioconductor package below. 
 # biocLite("org.Mm.eg.db") # for Mouse
 # biocLite("org.Hs.eg.db") # for Human
@@ -38,18 +39,18 @@ species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish
 # biocLite("org.Dr.eg.db") # for Zebrafish
 
 id.type = "ENSG"      # one of
-                      # "ENSG" (ensembl gene),
-                      # "ENST" (ensembl trasncript),
-                      # "ENSP" (ensembl peptide),
-                      # "Entrez"
-                      # "Uniprot" (UniProt/SwissProt Accession)
-                      # "Unigene"
-                      # "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
-                      # "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
+# "ENSG" (ensembl gene),
+# "ENST" (ensembl trasncript),
+# "ENSP" (ensembl peptide),
+# "Entrez"
+# "Uniprot" (UniProt/SwissProt Accession)
+# "Unigene"
+# "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
+# "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
 
 
 # set variables for hypergeometric cutoff enrichment qval less than this and with greater or equal to minimum number of genes in pathway or GO term will be drawn
-kegg.qval.cutoff = 0.05
+kegg.qval.cutoff = 0.1
 GO.cutoff = 0.05
 min.genes.cutoff = 2
 
@@ -166,22 +167,22 @@ ensembl = useEnsembl(biomart="ensembl", dataset=ensembl.spp)
 ##############################################################################
 
 if (id.type =="ENSG")
-  {
+{
   all.genes <- getBM(attributes=c('ensembl_gene_id', 'entrezgene', 'external_gene_name'), mart = ensembl)
   colnames(all.genes) <- c("ID","Entrez","Name")
   all.genes.entrez <- na.omit(all.genes)
   all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
   goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-  }
+}
 
 if (id.type =="ENSP")
-  {
+{
   all.genes <- getBM(attributes=c('ensembl_peptide_id', 'entrezgene', 'external_gene_name'), mart = ensembl)
   colnames(all.genes) <- c("ID","Entrez","Name")
   all.genes.entrez <- na.omit(all.genes)
   all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
   goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-  }
+}
 
 if (id.type =="ENST")
 {
@@ -250,7 +251,8 @@ universe <- unique(as.character(all.genes.entrez$Entrez))
 ##############################################################################
 # start report and set up variables to catch failing sections. 
 ##############################################################################
-run.report = "NIPA.report.txt"
+run.report = paste(outfile.prefix,"NIPA.report.txt",sep=".")
+
 cat(c("-----------------------------------------------------------","The NIPA run has initiated: Any warnings will appear below.","-----------------------------------------------------------"), file=run.report, append=FALSE, sep = "\n")
 
 if (length(goi.entrez)==0 )
@@ -335,7 +337,8 @@ if (doGO == "yes")
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
       
-      pdf("GO.BP.Significant.enrichment.plot.pdf")
+      BP.plot.out = paste(outfile.prefix,"GO.BP.Significant.enrichment.plot.pdf",sep=".")
+      pdf(BP.plot.out)
       print(sig.BP.plot)
       dev.off()
     }
@@ -345,7 +348,7 @@ if (doGO == "yes")
     output.BP.match <- NULL
     for (i in 1:nrow(result.BP))
     {
-
+      
       go.holding = result.BP$GOBPID[i]
       all.entrez.in.GO <- as.vector(unlist(allgos.BP[go.holding]))
       goi.entrez.in.GO <- intersect(all.entrez.in.GO,goi.entrez)
@@ -358,7 +361,8 @@ if (doGO == "yes")
       output.BP.match <- rbind(output.BP.match,temp)
     }
     result.BP <- merge(result.BP, output.BP.match, by.x ="GOBPID", by.y="go.holding", all.x=TRUE)
-    write.table(result.BP, file="GO.BP.table", row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+    BP.table.out = paste(outfile.prefix,"GO.BP.table",sep=".")
+    write.table(result.BP, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
     
   }
   
@@ -392,10 +396,10 @@ if (doGO == "yes")
     top.result.MF$Term <- as.factor(top.result.MF$Term)
     top.result.MF$Term <- factor(top.result.MF$Term, levels = top.result.MF$Term)
     
-   if (nrow(top.result.MF) > 0)
+    if (nrow(top.result.MF) > 0)
     {
-     top.result.MF$Pvalue[top.result.MF$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0 
-     max.y.plot = 1.2*(max(-log10(top.result.MF$Pvalue)))
+      top.result.MF$Pvalue[top.result.MF$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0 
+      max.y.plot = 1.2*(max(-log10(top.result.MF$Pvalue)))
       sig.MF.plot <-
         ggplot(data = top.result.MF,
                aes(x = as.factor(Term), y = -log10(top.result.MF$Pvalue),
@@ -420,7 +424,8 @@ if (doGO == "yes")
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
       
-      pdf("GO.MF.Significant.enrichment.plot.pdf")
+      MF.plot.out = paste(outfile.prefix,"GO.MF.Significant.enrichment.plot.pdf",sep=".")
+      pdf(MF.plot.out)
       print(sig.MF.plot)
       dev.off()
     }
@@ -442,7 +447,8 @@ if (doGO == "yes")
       output.MF.match <- rbind(output.MF.match,temp)
     }
     result.MF <- merge(result.MF, output.MF.match, by.x ="GOMFID", by.y="go.holding", all.x=TRUE)
-    write.table(result.MF, file="GO.MF.table", row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+    MF.table.out = paste(outfile.prefix,"GO.MF.table",sep=".")
+    write.table(result.MF, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
   }
   
   # Cellular Compartment
@@ -500,8 +506,8 @@ if (doGO == "yes")
         ylim(-0.5,max.y.plot)+
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
-      
-      pdf("GO.CC.Significant.enrichment.plot.pdf")
+      CC.plot.out = paste(outfile.prefix,"GO.CC.Significant.enrichment.plot.pdf",sep=".")
+      pdf(CC.plot.out)
       print(sig.CC.plot)
       dev.off()
     }
@@ -524,7 +530,8 @@ if (doGO == "yes")
       output.CC.match <- rbind(output.CC.match,temp)
     }
     result.CC <- merge(result.CC, output.CC.match, by.x ="GOCCID", by.y="go.holding", all.x=TRUE)
-    write.table(result.CC, file="GO.CC.table", row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+    CC.table.out = paste(outfile.prefix,"GO.CC.table",sep=".")
+    write.table(result.CC, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
   }
 }
 
@@ -548,7 +555,7 @@ if (doReactome == "yes")
                                 universe = universe
   )
   
-reactome.writeout <- (as.data.frame(reactome.out))
+  reactome.writeout <- (as.data.frame(reactome.out))
   
   if (nrow(reactome.writeout) == 0)
   {
@@ -556,17 +563,19 @@ reactome.writeout <- (as.data.frame(reactome.out))
     cat(c("Reactome analysis identified no enriched pathways","Probably too few IDs"),
         file=run.report, append=TRUE, sep='\n')
   }
-    
-if (fail.reactome==0)
+  
+  if (fail.reactome==0)
   {
-    write.table(reactome.writeout, file="reactome.pathway.enrichment.table", row.names = FALSE, col.names = TRUE, quote=FALSE, sep='\t')
+    reactome.table.out = paste(outfile.prefix,"reactome.pathway.enrichment.table",sep=".")
+    write.table(reactome.writeout, file=reactome.table.out, row.names = FALSE, col.names = TRUE, quote=FALSE, sep='\t')
     
     reactome.dot <- dotplot <- dotplot(
       reactome.out,
       showCategory=15,
       font.size = 12
     )
-    tiff(filename="reactome.pathway.enrichment.dotplot.tiff",
+    reactome.plot.out = paste(outfile.prefix,"reactome.pathway.enrichment.dotplot.tiff",sep=".")
+    tiff(filename=reactome.plot.out,
          width = 320,
          height = 240,
          units = "mm",
@@ -575,8 +584,8 @@ if (fail.reactome==0)
     print(reactome.dot)
     dev.off()
     
-    
-    tiff(filename="reactome.pathway.enrichment.enrichmap.tiff",
+    reactome.map.out = paste(outfile.prefix,"reactome.pathway.enrichment.enrichmap.tiff",sep=".")
+    tiff(filename=reactome.map.out,
          width = 320,
          height = 240,
          units = "mm",
@@ -715,7 +724,8 @@ if (doKEGG == "yes")
     pathways.hypergeometric.results$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results$`FDR q.val`))
     pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
     
-    write.table(pathways.hypergeometric.results,"KEGG.enrichment.analysis.results.table", row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
+    kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
+    write.table(pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
     
     ##############################################################################################  
     # draw plot of enriched pathways
@@ -758,7 +768,8 @@ if (doKEGG == "yes")
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
       
-      pdf("KEGG.Significant.enrichment.plot.pdf")
+      kegg.pdf.out = paste(outfile.prefix,"KEGG.Significant.enrichment.plot.pdf",sep=".")
+      pdf(kegg.pdf.out)
       print(sig.kegg.plot)
       dev.off()
       stats.KEGG.fail = 1
