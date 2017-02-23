@@ -7,6 +7,7 @@
 #biocLite("pathview")
 #biocLite("gageData")
 #biocLite("ggplot2")
+#biocLite("stringr")
 
 source("http://www.bioconductor.org/biocLite.R")
 library(GOstats)
@@ -16,7 +17,7 @@ library(gage)
 library(gageData)
 library(ReactomePA)
 library(ggplot2)
-
+library(stringr)
 
 
 ###############################################################################
