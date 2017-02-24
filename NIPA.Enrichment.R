@@ -8,6 +8,8 @@
 #biocLite("gageData")
 #biocLite("ggplot2")
 #biocLite("stringr")
+#biocLite("dplyr")
+
 
 source("http://www.bioconductor.org/biocLite.R")
 library(GOstats)
@@ -18,7 +20,7 @@ library(gageData)
 library(ReactomePA)
 library(ggplot2)
 library(stringr)
-
+library(dplyr)
 
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [START]
