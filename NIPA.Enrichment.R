@@ -682,6 +682,8 @@ if (doKEGG == "yes")
     pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0))
     pathways.hypergeometric.results.sig <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0), "goi.count"= numeric(0))
     
+    detach("package:dplyr") # to overcome occasional issues of pathview clashing with dplyr
+    
     for (i in 1:length(working.pathways))
     {
       current.pathway = working.pathways[i]
@@ -710,17 +712,19 @@ if (doKEGG == "yes")
       
       pathways.hypergeometric.results <- rbind(pathways.hypergeometric.results, current.out)
       
+      
+
       if (qval < kegg.qval.cutoff & goi.in.pathway >= min.genes.cutoff)
       {
         pid <- substr(current.pathway, start=1, stop=8) # get kegg ids 
         pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
         pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
       }
-      
+     library(dplyr)
       
       
     }
-    
+    library(dplyr)    
     colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","Ensembl.ids","Entrez.ids","External.ids")
     
     # make FDR q.val numeric and sort 
@@ -734,7 +738,7 @@ if (doKEGG == "yes")
     # draw plot of enriched pathways
     ############################################################################################## 
     colnames(pathways.hypergeometric.results.sig) <- c("Pathway","p.val","FDR q.val","goi.count")
-    
+
     if (nrow(pathways.hypergeometric.results.sig)>0)
     {
       
