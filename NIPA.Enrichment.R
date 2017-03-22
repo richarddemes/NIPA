@@ -28,8 +28,8 @@ library(dplyr)
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes" # "yes" or "no" if header on file 
 
-goi.list <- "/Users/svzrde/Documents/ADAC/projects/Falcone.Caco2.expression/ADAC.analysis/Significant.data.out.table.txt" # change to input gene list 
-working.directory = "/Users/svzrde/Documents/ADAC/projects/Falcone.Caco2.expression/ADAC.analysis/"  # change to working directory where you want output 
+goi.list <- "Significant.data.out.table.txt" # change to input gene list 
+working.directory = "/Users/svzrde/Documents/ADAC/projects/"  # change to working directory where you want output 
 
 species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish"
 outfile.prefix <- "ADAC.analysis" # prefix attached to output files. 
@@ -59,7 +59,7 @@ min.genes.cutoff = 2
 
 # change below to determine which test to conduct.
 doGO = "yes" # yes or no.       Run GoStats hypergeometric test to find enriched GO terms in BP, MF and CC category
-doReactome = "no" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
+doReactome = "yes" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
 doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 ###############################################################################
