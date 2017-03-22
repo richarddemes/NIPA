@@ -28,11 +28,11 @@ library(dplyr)
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes" # "yes" or "no" if header on file 
 
-goi.list <- "test.ids" # change to input gene list 
-working.directory = "~/NIPA/"  # change to working directory where you want output 
+goi.list <- "/Users/svzrde/Documents/ADAC/projects/Falcone.Caco2.expression/ADAC.analysis/Significant.data.out.table.txt" # change to input gene list 
+working.directory = "/Users/svzrde/Documents/ADAC/projects/Falcone.Caco2.expression/ADAC.analysis/"  # change to working directory where you want output 
 
-species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish"
-outfile.prefix <- "day1.u.FC2" # prefix attached to output files. 
+species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish"
+outfile.prefix <- "ADAC.analysis" # prefix attached to output files. 
   
 # if not installed you will need to download the appropriate species bioconductor package below. 
 # biocLite("org.Mm.eg.db") # for Mouse
@@ -59,7 +59,7 @@ min.genes.cutoff = 2
 
 # change below to determine which test to conduct.
 doGO = "yes" # yes or no.       Run GoStats hypergeometric test to find enriched GO terms in BP, MF and CC category
-doReactome = "yes" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
+doReactome = "no" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
 doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 ###############################################################################
@@ -365,6 +365,7 @@ if (doGO == "yes")
     }
     result.BP <- merge(result.BP, output.BP.match, by.x ="GOBPID", by.y="go.holding", all.x=TRUE)
     BP.table.out = paste(outfile.prefix,"GO.BP.table",sep=".")
+    result.BP <- result.BP[order(result.BP$Pvalue),] # order by Pvalue
     write.table(result.BP, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
     
   }
@@ -451,6 +452,7 @@ if (doGO == "yes")
     }
     result.MF <- merge(result.MF, output.MF.match, by.x ="GOMFID", by.y="go.holding", all.x=TRUE)
     MF.table.out = paste(outfile.prefix,"GO.MF.table",sep=".")
+    result.MF <- result.MF[order(result.MF$Pvalue),] # order by Pvalue
     write.table(result.MF, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
   }
   
@@ -534,6 +536,7 @@ if (doGO == "yes")
     }
     result.CC <- merge(result.CC, output.CC.match, by.x ="GOCCID", by.y="go.holding", all.x=TRUE)
     CC.table.out = paste(outfile.prefix,"GO.CC.table",sep=".")
+    result.CC <- result.CC[order(result.CC$Pvalue),] # order by Pvalue
     write.table(result.CC, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
   }
 }
@@ -720,7 +723,6 @@ if (doKEGG == "yes")
         pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
         pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
       }
-     library(dplyr)
       
       
     }
