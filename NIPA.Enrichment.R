@@ -28,8 +28,8 @@ library(dplyr)
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes" # "yes" or "no" if header on file 
 
-goi.list <- "Significant.data.out.table.txt" # change to input gene list 
-working.directory = "/Users/svzrde/Documents/ADAC/projects/"  # change to working directory where you want output 
+goi.list <- "/Users/svzrde/Documents/ADAC/projects/Falcone.Caco2.expression/ADAC.analysis/Significant.data.out.table.txt" # change to input gene list 
+working.directory = "/Users/svzrde/Documents/ADAC/projects/Falcone.Caco2.expression/ADAC.analysis/"  # change to working directory where you want output 
 
 species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish"
 outfile.prefix <- "ADAC.analysis" # prefix attached to output files. 
@@ -59,9 +59,13 @@ min.genes.cutoff = 2
 
 # change below to determine which test to conduct.
 doGO = "yes" # yes or no.       Run GoStats hypergeometric test to find enriched GO terms in BP, MF and CC category
-doReactome = "yes" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
+doReactome = "no" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
 doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
+
+# colour pathways by expression fold change?
+keggFC = "yes" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
+keggFC.col = 9 # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [END]
 ###############################################################################
@@ -176,7 +180,7 @@ if (id.type =="ENSG")
   all.genes.entrez <- na.omit(all.genes)
   all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
   goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
+  }
 
 if (id.type =="ENSP")
 {
@@ -242,7 +246,13 @@ if (id.type == "Uniprot")
 }
 
 
-
+# if keggFC = yes create foldchanges named list of log fold change values
+if (keggFC == "yes")
+{
+  entrez.FC.match <- merge(all.genes.entrez,my.data.in,by.x="ID",by.y=names(my.data.in[goi.column]))
+  foldchanges = unlist(entrez.FC.match[keggFC.col+2])
+  names(foldchanges) = entrez.FC.match$Entrez
+}
 
 
 ##########################################################
@@ -678,6 +688,7 @@ if (doKEGG == "yes")
     universe.size = as.numeric(length(universe))
     total.goi.size = as.numeric(length(goi.entrez))
     
+
     
     # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
     working.pathways <- unique(matching.kegg.sets.spp.df$kegg.id)
@@ -720,7 +731,17 @@ if (doKEGG == "yes")
       if (qval < kegg.qval.cutoff & goi.in.pathway >= min.genes.cutoff)
       {
         pid <- substr(current.pathway, start=1, stop=8) # get kegg ids 
-        pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
+      
+        if (keggFC == "yes")
+        {
+        pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code)
+        }
+        
+        if (keggFC == "no")
+        {
+          pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
+        }
+        
         pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
       }
       
