@@ -749,13 +749,16 @@ if (doKEGG == "yes")
       pathways.hypergeometric.results.sig <-  pathways.hypergeometric.results.sig[with(pathways.hypergeometric.results.sig, order(pathways.hypergeometric.results.sig$`FDR q.val`)), ]
       
       pathways.hypergeometric.results.sig$goi.count <- as.numeric(as.character(pathways.hypergeometric.results.sig$goi.count))
-      pathways.hypergeometric.results.sig <-  pathways.hypergeometric.results.sig[with(pathways.hypergeometric.results.sig, order(-pathways.hypergeometric.results.sig$`FDR q.val`)), ]
+      pathways.hypergeometric.results.sig <-  pathways.hypergeometric.results.sig[with(pathways.hypergeometric.results.sig, order(pathways.hypergeometric.results.sig$`FDR q.val`)), ]
       
-      max.y.plot = 1.2*(max(-log10(pathways.hypergeometric.results.sig$`FDR q.val`)))
+      
+      top.pathways.hypergeometric.results.sig <- head(pathways.hypergeometric.results.sig,10)
+      top.pathways.hypergeometric.results.sig$Pathway <- factor(top.pathways.hypergeometric.results.sig$Pathway, levels = top.pathways.hypergeometric.results.sig$Pathway)
+      max.y.plot = 1.2*(max(-log10(top.pathways.hypergeometric.results.sig$`FDR q.val`)))
       
       sig.kegg.plot <-
-        ggplot(data = pathways.hypergeometric.results.sig,
-               aes(x = as.factor(Pathway), y = -log10(pathways.hypergeometric.results.sig$`FDR q.val`),
+        ggplot(data = top.pathways.hypergeometric.results.sig,
+               aes(x = as.factor(Pathway), y = -log10(top.pathways.hypergeometric.results.sig$`FDR q.val`),
                    colour = goi.count,
                    scale_colour_gradient(low="blue"),
                    size = goi.count))+
