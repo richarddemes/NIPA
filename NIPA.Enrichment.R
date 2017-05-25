@@ -28,18 +28,16 @@ library(dplyr)
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes" # "yes" or "no" if header on file 
 
-goi.list <- "Significant.data.out.table.txt" # change to input gene list 
-working.directory = "/Users/Documents/ADAC/projects/"  # change to working directory where you want output 
+goi.list <- "/Users/svzrde/Scripts/R/NIPA/NIPA-master/data.in.txt" # change to input gene list 
+working.directory = "/Users/svzrde/Scripts/R/NIPA/NIPA-master/"  # change to working directory where you want output 
 
-species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish"
+species = "cow"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow"
 outfile.prefix <- "ADAC.analysis" # prefix attached to output files. 
-  
-# if not installed you will need to download the appropriate species bioconductor package below. 
-# biocLite("org.Mm.eg.db") # for Mouse
-# biocLite("org.Hs.eg.db") # for Human
-# biocLite("org.Rn.eg.db") # for Rat
-# biocLite("org.Ss.eg.db") # for Pig
-# biocLite("org.Dr.eg.db") # for Zebrafish
+
+# colour pathways by expression fold change?
+keggFC = "yes" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
+keggFC.col = 14 # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+
 
 id.type = "ENSG"      # one of
 # "ENSG" (ensembl gene),
@@ -63,9 +61,7 @@ doReactome = "yes" # yes or no. Run ReactomePA to find enriched pathways in Reac
 doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 
-# colour pathways by expression fold change?
-keggFC = "yes" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 9 # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [END]
 ###############################################################################
@@ -92,7 +88,7 @@ keggFC.col = 9 # if keggFC = yes specify column of input table with FC values  a
 ###############################################################################
 if (species == "mouse")
 {
-  
+  biocLite("org.Mm.eg.db") # for Mouse
   library(org.Mm.eg.db)    
   ensembl.spp <- "mmusculus_gene_ensembl"
   species.ens.code = "Mm"
@@ -104,6 +100,7 @@ if (species == "mouse")
 
 if (species == "human")
 {
+  biocLite("org.Hs.eg.db") # for Human
   library(org.Hs.eg.db)    
   ensembl.spp <- "hsapiens_gene_ensembl"
   species.ens.code = "Hs"
@@ -115,6 +112,7 @@ if (species == "human")
 
 if (species == "rat")
 {
+  biocLite("org.Rn.eg.db") # for Rat
   library(org.Rn.eg.db)    
   ensembl.spp <- "rnorvegicus_gene_ensembl"
   species.ens.code = "Rn"
@@ -126,6 +124,7 @@ if (species == "rat")
 
 if (species == "pig")
 {
+  biocLite("org.Ss.eg.db") # for Pig
   library(org.Ss.eg.db)    
   ensembl.spp <- "sscrofa_gene_ensembl"
   species.ens.code = "Ss"
@@ -138,6 +137,7 @@ if (species == "pig")
 
 if (species == "zebrafish")
 {
+  biocLite("org.Dr.eg.db") # for Zebrafish
   library(org.Dr.eg.db)    
   ensembl.spp <- "drerio_gene_ensembl"
   species.ens.code = "Dr"
@@ -148,6 +148,17 @@ if (species == "zebrafish")
   kegg.gsets.spp <- kegg.gsets(species = "dre", id.type = "kegg")  
 }
 
+if (species == "cow")
+{
+  biocLite("org.Bt.eg.db") # for Cow
+  library(org.Bt.eg.db)    
+  ensembl.spp <- "btaurus_gene_ensembl"
+  species.ens.code = "Bt"
+  species.kegg.code = "bta"
+  kegg.data.code = "bta"
+  doReactome = "no"
+  kegg.gsets.spp <- kegg.gsets(species = "bta", id.type = "kegg")  
+}
 ##############################################################################
 # Build kegg sets 
 ##############################################################################
@@ -159,8 +170,8 @@ kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 ##############################################################################
 setwd(working.directory)
 
-if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE)}
-if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE)}
+if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
+if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
 myInterestingGenes <- as.vector(unlist(my.data.in[goi.column]))
 myInterestingGenes <- unique(myInterestingGenes)
 
@@ -698,8 +709,7 @@ if (doKEGG == "yes")
     
     detach("package:dplyr") # to overcome occasional issues of pathview clashing with dplyr
     
-    for (i in 1:length(working.pathways))
-    {
+    for (i in 1:length(working.pathways)){
       current.pathway = working.pathways[i]
       goi.in.pathway <- as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
       total.genes.in.pathway <- as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
@@ -745,8 +755,8 @@ if (doKEGG == "yes")
         pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
       }
       
-      
-    }
+  
+}
     library(dplyr)    
     colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","Ensembl.ids","Entrez.ids","External.ids")
     
