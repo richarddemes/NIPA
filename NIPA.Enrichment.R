@@ -803,7 +803,7 @@ if (doKEGG == "yes")
       sig.kegg.plot <-
         ggplot(data = top.pathways.hypergeometric.results.sig,
                aes(x = as.factor(Pathway), y = -log10(top.pathways.hypergeometric.results.sig$`FDR q.val`),
-                   size = Count))+
+                   size = goi.count))+
         geom_point() +
         scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
