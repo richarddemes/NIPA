@@ -666,6 +666,7 @@ if (doKEGG == "yes")
     matching.kegg.sets.spp <- kegg.sets.test[c(keggres.pathways.out$KEGGpathways)] # named list of matched pathways
     matching.kegg.sets.spp.total.size <- lengths(matching.kegg.sets.spp, use.names = TRUE) # named list of the number of total number of genes in matched pathway.
     
+   
     
     matching.kegg.sets.spp.df <- as.data.frame(unlist(matching.kegg.sets.spp, use.names = TRUE))
     matching.kegg.sets.spp.df$kegg.id <-  gsub("\\d+$", "", rownames(matching.kegg.sets.spp.df)) 
@@ -709,6 +710,8 @@ if (doKEGG == "yes")
     # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
     working.pathways <- unique(matching.kegg.sets.spp.df$kegg.id)
     
+
+    
     pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0))
     pathways.hypergeometric.results.sig <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0), "goi.count"= numeric(0))
     
@@ -746,18 +749,23 @@ if (doKEGG == "yes")
       if (qval < kegg.qval.cutoff & goi.in.pathway >= min.genes.cutoff)
       {
         pid <- substr(current.pathway, start=1, stop=8) # get kegg ids 
-      
-        if (keggFC == "yes")
-        {
-        pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code)
-        }
+        num.pid <- substr(pid, start=4, stop=8) # get kegg ids
         
-        if (keggFC == "no")
-        {
-          pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
-        }
+        if(num.pid != "01100") # avoid drawing entire metabolic pathway plot. 
+          {
+            if (keggFC == "yes")
+            {
+            pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code)
+            }
+            
+            if (keggFC == "no")
+            {
+              pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
+            }
+          }
         
         pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
+          
       }
       
   
@@ -828,3 +836,8 @@ if (doKEGG == "yes")
     
   }
 }
+
+
+
+
+
