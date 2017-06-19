@@ -39,7 +39,7 @@ keggFC = "yes" # yes or no. will colour enriched KEGG pathways by FC data [speci
 keggFC.col = 14 # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 
-id.type = "ENSG"      # one of
+id.type = "hgnc"      # one of
 # "ENSG" (ensembl gene),
 # "ENST" (ensembl trasncript),
 # "ENSP" (ensembl peptide),
@@ -48,7 +48,7 @@ id.type = "ENSG"      # one of
 # "Unigene"
 # "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
 # "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
-
+# "hgnc" (HGNC ID [e.g. LIS1])
 
 # set variables for hypergeometric cutoff enrichment qval less than this and with greater or equal to minimum number of genes in pathway or GO term will be drawn
 kegg.qval.cutoff = 0.1
@@ -57,7 +57,7 @@ min.genes.cutoff = 2
 
 # change below to determine which test to conduct.
 doGO = "yes" # yes or no.       Run GoStats hypergeometric test to find enriched GO terms in BP, MF and CC category
-doReactome = "yes" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
+doReactome = "no" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
 doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 
@@ -249,7 +249,7 @@ if (id.type == "Unigene")
 
 if (id.type == "Uniprot")
 {
-  all.genes <- getBM(attributes=c('uniprot_swissprot', 'entrezgene', 'external_gene_name'), mart = ensembl)
+  all.genes <- getBM(attributes=c('uniprotswissprot', 'entrezgene', 'external_gene_name'), mart = ensembl)
   colnames(all.genes) <- c("ID","Entrez","Name")
   all.genes.entrez <- na.omit(all.genes)
   all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
@@ -264,6 +264,17 @@ if (keggFC == "yes")
   foldchanges = unlist(entrez.FC.match[keggFC.col+2])
   names(foldchanges) = entrez.FC.match$Entrez
 }
+
+
+if (id.type == "hgnc")
+{
+  all.genes <- getBM(attributes=c('hgnc_symbol', 'entrezgene', 'external_gene_name'), mart = ensembl)
+  colnames(all.genes) <- c("ID","Entrez","Name")
+  all.genes.entrez <- na.omit(all.genes)
+  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
+  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
+}
+
 
 
 ##########################################################
@@ -340,18 +351,15 @@ if (doGO == "yes")
       sig.BP.plot <-
         ggplot(data = top.result.BP,
                aes(x = as.factor(Term), y = -log10(top.result.BP$Pvalue),
-                   colour = Count,
-                   scale_colour_gradient(low="blue"),
                    size = Count))+
         geom_point() +
-        scale_color_continuous("GOI count")+
-        scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
         coord_flip()+
-        geom_point(stat = "identity") +
+        geom_point(stat = "identity",colour="royalblue4") +
         theme_bw() +
         theme(axis.text.x = element_text(colour = "black"),
               panel.grid.major = element_blank(),
@@ -360,6 +368,7 @@ if (doGO == "yes")
         ylim(-0.5,max.y.plot)+
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
+      
       
       BP.plot.out = paste(outfile.prefix,"GO.BP.Significant.enrichment.plot.pdf",sep=".")
       pdf(BP.plot.out)
@@ -428,18 +437,15 @@ if (doGO == "yes")
       sig.MF.plot <-
         ggplot(data = top.result.MF,
                aes(x = as.factor(Term), y = -log10(top.result.MF$Pvalue),
-                   colour = Count,
-                   scale_colour_gradient(low="blue"),
                    size = Count))+
         geom_point() +
-        scale_color_continuous("GOI count")+
-        scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
         coord_flip()+
-        geom_point(stat = "identity") +
+        geom_point(stat = "identity",colour="royalblue4") +
         theme_bw() +
         theme(axis.text.x = element_text(colour = "black"),
               panel.grid.major = element_blank(),
@@ -448,6 +454,7 @@ if (doGO == "yes")
         ylim(-0.5,max.y.plot)+
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
+      
       
       MF.plot.out = paste(outfile.prefix,"GO.MF.Significant.enrichment.plot.pdf",sep=".")
       pdf(MF.plot.out)
@@ -512,18 +519,15 @@ if (doGO == "yes")
       sig.CC.plot <-
         ggplot(data = top.result.CC,
                aes(x = as.factor(Term), y = -log10(top.result.CC$Pvalue),
-                   colour = Count,
-                   scale_colour_gradient(low="blue"),
                    size = Count))+
         geom_point() +
-        scale_color_continuous("GOI count")+
-        scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
         coord_flip()+
-        geom_point(stat = "identity") +
+        geom_point(stat = "identity",colour="royalblue4") +
         theme_bw() +
         theme(axis.text.x = element_text(colour = "black"),
               panel.grid.major = element_blank(),
@@ -532,6 +536,7 @@ if (doGO == "yes")
         ylim(-0.5,max.y.plot)+
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
+      
       CC.plot.out = paste(outfile.prefix,"GO.CC.Significant.enrichment.plot.pdf",sep=".")
       pdf(CC.plot.out)
       print(sig.CC.plot)
@@ -790,18 +795,15 @@ if (doKEGG == "yes")
       sig.kegg.plot <-
         ggplot(data = top.pathways.hypergeometric.results.sig,
                aes(x = as.factor(Pathway), y = -log10(top.pathways.hypergeometric.results.sig$`FDR q.val`),
-                   colour = goi.count,
-                   scale_colour_gradient(low="blue"),
-                   size = goi.count))+
+                   size = Count))+
         geom_point() +
-        scale_color_continuous("GOI count")+
-        scale_size_continuous(range = c(5,20), guide=FALSE)+
+        scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
         geom_hline(yintercept=3,lty=3, color="grey") + # equivalent of p = 0.001  
         coord_flip()+
-        geom_point(stat = "identity") +
+        geom_point(stat = "identity",colour="royalblue4") +
         theme_bw() +
         theme(axis.text.x = element_text(colour = "black"),
               panel.grid.major = element_blank(),
@@ -810,6 +812,7 @@ if (doKEGG == "yes")
         ylim(-0.5,max.y.plot)+
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
+
       
       kegg.pdf.out = paste(outfile.prefix,"KEGG.Significant.enrichment.plot.pdf",sep=".")
       pdf(kegg.pdf.out)
