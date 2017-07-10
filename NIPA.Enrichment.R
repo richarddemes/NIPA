@@ -9,7 +9,7 @@
 #biocLite("ggplot2")
 #biocLite("stringr")
 #biocLite("dplyr")
-
+#biocLite("RamiGO")
 
 source("http://www.bioconductor.org/biocLite.R")
 library(GOstats)
@@ -21,6 +21,7 @@ library(ReactomePA)
 library(ggplot2)
 library(stringr)
 library(dplyr)
+library(RamiGO)
 
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [START]
@@ -28,18 +29,15 @@ library(dplyr)
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes" # "yes" or "no" if header on file 
 
-goi.list <- "/Users/svzrde/Scripts/R/NIPA/NIPA-master/data.in.txt" # change to input gene list 
-working.directory = "/Users/svzrde/Scripts/R/NIPA/NIPA-master/"  # change to working directory where you want output 
-
-species = "cow"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow"
+species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow"
 outfile.prefix <- "ADAC.analysis" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
-keggFC = "yes" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
+keggFC = "no" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
 keggFC.col = 14 # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 
-id.type = "hgnc"      # one of
+id.type = "ENSG"      # one of
 # "ENSG" (ensembl gene),
 # "ENST" (ensembl trasncript),
 # "ENSP" (ensembl peptide),
@@ -82,6 +80,9 @@ doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriche
 ##############################################################################
 # Dont alter below this line
 ##############################################################################
+goi.list <- file.choose()
+this.dir <- dirname(goi.list)
+setwd(this.dir)
 
 ###############################################################################
 ## set variables based on species given 
@@ -159,6 +160,8 @@ if (species == "cow")
   doReactome = "no"
   kegg.gsets.spp <- kegg.gsets(species = "bta", id.type = "kegg")  
 }
+
+
 ##############################################################################
 # Build kegg sets 
 ##############################################################################
@@ -168,7 +171,6 @@ kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 ##############################################################################
 # Get Data
 ##############################################################################
-setwd(working.directory)
 
 if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
 if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
@@ -256,6 +258,14 @@ if (id.type == "Uniprot")
   goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
 }
 
+if (id.type == "hgnc")
+{
+  all.genes <- getBM(attributes=c('hgnc_symbol', 'entrezgene', 'external_gene_name'), mart = ensembl)
+  colnames(all.genes) <- c("ID","Entrez","Name")
+  all.genes.entrez <- na.omit(all.genes)
+  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
+  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
+}
 
 # if keggFC = yes create foldchanges named list of log fold change values
 if (keggFC == "yes")
@@ -266,14 +276,7 @@ if (keggFC == "yes")
 }
 
 
-if (id.type == "hgnc")
-{
-  all.genes <- getBM(attributes=c('hgnc_symbol', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
+
 
 
 
@@ -338,9 +341,10 @@ if (doGO == "yes")
   if (fail.GO.BP !=1)
   {
     result.BP <- result.BP[result.BP$Count >= min.genes.cutoff,] # filter those with < cut off count
-    result.BP <- result.BP[order(result.BP$Pvalue),] # order by Pvalue
+    result.BP <- result.BP[order(-result.BP$OddsRatio),] # order by odds ratio
     
-    top.result.BP <- head(result.BP,10)
+    top.result.BP <- head(result.BP,15)
+    top.result.BP <- top.result.BP[order(top.result.BP$Pvalue),]
     top.result.BP$Term <- as.factor(top.result.BP$Term)
     top.result.BP$Term <- factor(top.result.BP$Term, levels = top.result.BP$Term)
     
@@ -374,7 +378,10 @@ if (doGO == "yes")
       pdf(BP.plot.out)
       print(sig.BP.plot)
       dev.off()
-    }
+      
+      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
+      svgRes <- getAmigoTree(top.result.BP$GOBPID, color="red", pvalues =top.result.BP$Pvalue, filename="GO.BP.top.DAG", picType="svg", saveResult=TRUE)
+      }
     
     # Add gene names to results table
     allgos.BP <- geneIdUniverse(hgOver.BP)
@@ -424,9 +431,10 @@ if (doGO == "yes")
   if (fail.GO.MF !=1)
   {
     result.MF <- result.MF[result.MF$Count >= min.genes.cutoff,] # filter those with < cut off count
-    result.MF <- result.MF[order(result.MF$Pvalue),] # order by Pvalue
+    result.MF <- result.MF[order(-result.MF$OddsRatio),] # order by odds ratio
     
-    top.result.MF <- head(result.MF,10)
+    top.result.MF <- head(result.MF,15)
+    top.result.MF <- top.result.MF[order(top.result.MF$Pvalue),]
     top.result.MF$Term <- as.factor(top.result.MF$Term)
     top.result.MF$Term <- factor(top.result.MF$Term, levels = top.result.MF$Term)
     
@@ -460,6 +468,10 @@ if (doGO == "yes")
       pdf(MF.plot.out)
       print(sig.MF.plot)
       dev.off()
+      
+      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
+      svgRes <- getAmigoTree(top.result.MF$GOMFID, color="red", pvalues =top.result.MF$Pvalue, filename="GO.MF.top.DAG", picType="svg", saveResult=TRUE)
+      
     }
     
     # Add gene names to results table
@@ -507,8 +519,9 @@ if (doGO == "yes")
   if (fail.GO.CC !=1)
   {
     result.CC <- result.CC[result.CC$Count >= min.genes.cutoff,] # filter those with < cut off count
-    result.CC <- result.CC[order(result.CC$Pvalue),] # order by Pvalue
-    top.result.CC <- head(result.CC,10)
+    result.CC <- result.CC[order(-result.CC$OddsRatio),] # order by odds ratio
+    top.result.CC <- head(result.CC,15)
+    top.result.CC <- top.result.CC[order(top.result.CC$Pvalue),]
     top.result.CC$Term <- as.factor(top.result.CC$Term)
     top.result.CC$Term <- factor(top.result.CC$Term, levels = top.result.CC$Term)
     
@@ -541,6 +554,10 @@ if (doGO == "yes")
       pdf(CC.plot.out)
       print(sig.CC.plot)
       dev.off()
+      
+      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
+      svgRes <- getAmigoTree(top.result.CC$GOCCID, color="red", pvalues =top.result.CC$Pvalue, filename="GO.CC.top.DAG", picType="svg", saveResult=TRUE)
+      
     }
     
     
@@ -836,8 +853,4 @@ if (doKEGG == "yes")
     
   }
 }
-
-
-
-
 
