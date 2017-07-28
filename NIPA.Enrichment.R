@@ -773,11 +773,23 @@ if (doKEGG == "yes")
             if (keggFC == "yes")
             {
             pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code)
+            tmp.xml <- paste(pid,".xml",sep='')
+            xml.tmp <- paste(this.dir,tmp.xml,sep='/')
+            tmp.png <- paste(pid,".png",sep='')
+            png.tmp <- paste(this.dir,tmp.png,sep='/')
+            file.remove(xml.tmp)
+            file.remove(png.tmp)
             }
             
             if (keggFC == "no")
             {
-              pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
+            pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
+            tmp.xml <- paste(pid,".xml",sep='')
+            xml.tmp <- paste(this.dir,tmp.xml,sep='/')
+            tmp.png <- paste(pid,".png",sep='')
+            png.tmp <- paste(this.dir,tmp.png,sep='/')
+            file.remove(xml.tmp)
+            file.remove(png.tmp)
             }
           }
         
