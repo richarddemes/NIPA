@@ -1,5 +1,8 @@
 # NIPA a robust set of tools for analyis of gene lists. 
 
+##############################################################
+# uncommmment to install any required packages. 
+##############################################################
 #biocLite("biomaRt")
 #biocLite("GOstats")
 #biocLite("ReactomePA")
@@ -10,6 +13,7 @@
 #biocLite("stringr")
 #biocLite("dplyr")
 #biocLite("RamiGO")
+##############################################################
 
 source("http://www.bioconductor.org/biocLite.R")
 library(GOstats)
@@ -25,6 +29,7 @@ library(RamiGO)
 
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [START]
+## Check all or may fail.
 ###############################################################################
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes" # "yes" or "no" if header on file 
