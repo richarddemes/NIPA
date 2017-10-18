@@ -35,7 +35,7 @@ goi.column = 1 # if results are from analysis and are a column of a larger table
 goi.header = "no" # "yes" or "no" if header on file 
 
 species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly", 
-outfile.prefix <- "5caC_No_RNAse_vs_5caC_RNAse.de.broad.clean.annotated.genes" # prefix attached to output files. 
+outfile.prefix <- "ADAC.test" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
 keggFC = "no" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
