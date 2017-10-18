@@ -32,10 +32,10 @@ library(RamiGO)
 ## Check all or may fail.
 ###############################################################################
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
-goi.header = "yes" # "yes" or "no" if header on file 
+goi.header = "no" # "yes" or "no" if header on file 
 
-species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow"
-outfile.prefix <- "ADAC.analysis" # prefix attached to output files. 
+species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly", 
+outfile.prefix <- "5caC_No_RNAse_vs_5caC_RNAse.de.broad.clean.annotated.genes" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
 keggFC = "no" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
@@ -62,7 +62,6 @@ min.genes.cutoff = 2
 doGO = "yes" # yes or no.       Run GoStats hypergeometric test to find enriched GO terms in BP, MF and CC category
 doReactome = "no" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
 doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
-
 
 
 ###############################################################################
@@ -92,6 +91,18 @@ setwd(this.dir)
 ###############################################################################
 ## set variables based on species given 
 ###############################################################################
+if (species == "fly")
+{
+  biocLite("org.Dm.eg.db") # for drosophila
+  library(org.Dm.eg.db)    
+  ensembl.spp <- "dmelanogaster_gene_ensembl"
+  species.ens.code = "Dm"
+  species.kegg.code = "dme"
+  kegg.data.code = "dm"
+  reactome.spp = "fly" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
+  kegg.gsets.spp <- kegg.gsets(species = "dme", id.type = "kegg")  
+}
+
 if (species == "mouse")
 {
   biocLite("org.Mm.eg.db") # for Mouse
@@ -384,8 +395,9 @@ if (doGO == "yes")
       print(sig.BP.plot)
       dev.off()
       
-      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
-      svgRes <- getAmigoTree(top.result.BP$GOBPID, color="red", pvalues =top.result.BP$Pvalue, filename="GO.BP.top.DAG", picType="svg", saveResult=TRUE)
+      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
+      GO.BP.top.DAG <- paste(outfile.prefix,"GO.BP.top.DAG",sep='.')
+      svgRes <- getAmigoTree(top.result.BP$GOBPID, color="red", pvalues =top.result.BP$Pvalue, filename=GO.BP.top.DAG, picType="svg", saveResult=TRUE)
       }
     
     # Add gene names to results table
@@ -475,7 +487,8 @@ if (doGO == "yes")
       dev.off()
       
       #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
-      svgRes <- getAmigoTree(top.result.MF$GOMFID, color="red", pvalues =top.result.MF$Pvalue, filename="GO.MF.top.DAG", picType="svg", saveResult=TRUE)
+      GO.MF.top.DAG <- paste(outfile.prefix,"GO.MF.top.DAG",sep='.')
+      svgRes <- getAmigoTree(top.result.MF$GOMFID, color="red", pvalues =top.result.MF$Pvalue, filename=GO.MF.top.DAG, picType="svg", saveResult=TRUE)
       
     }
     
@@ -561,7 +574,8 @@ if (doGO == "yes")
       dev.off()
       
       #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
-      svgRes <- getAmigoTree(top.result.CC$GOCCID, color="red", pvalues =top.result.CC$Pvalue, filename="GO.CC.top.DAG", picType="svg", saveResult=TRUE)
+      GO.CC.top.DAG <- paste(outfile.prefix,"GO.CC.top.DAG",sep='.')
+      svgRes <- getAmigoTree(top.result.CC$GOCCID, color="red", pvalues =top.result.CC$Pvalue, filename=GO.CC.top.DAG, picType="svg", saveResult=TRUE)
       
     }
     
@@ -728,16 +742,12 @@ if (doKEGG == "yes")
     total.goi.size = as.numeric(length(goi.entrez))
     
 
-    
-    # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
+# run phyper for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
     working.pathways <- unique(matching.kegg.sets.spp.df$kegg.id)
-    
-
     
     pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0))
     pathways.hypergeometric.results.sig <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0), "goi.count"= numeric(0))
     
-    detach("package:dplyr") # to overcome occasional issues of pathview clashing with dplyr
     
     for (i in 1:length(working.pathways)){
       current.pathway = working.pathways[i]
@@ -765,47 +775,12 @@ if (doKEGG == "yes")
       current.sig.out <- as.data.frame(cbind(current.pathway,pval,qval,goi.in.pathway))
       
       pathways.hypergeometric.results <- rbind(pathways.hypergeometric.results, current.out)
-      
-      
+      pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
+    }  
 
-      if (qval < kegg.qval.cutoff & goi.in.pathway >= min.genes.cutoff)
-      {
-        pid <- substr(current.pathway, start=1, stop=8) # get kegg ids 
-        num.pid <- substr(pid, start=4, stop=8) # get kegg ids
-        
-        if(num.pid != "01100") # avoid drawing entire metabolic pathway plot. 
-          {
-            if (keggFC == "yes")
-            {
-            pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code)
-            tmp.xml <- paste(pid,".xml",sep='')
-            xml.tmp <- paste(this.dir,tmp.xml,sep='/')
-            tmp.png <- paste(pid,".png",sep='')
-            png.tmp <- paste(this.dir,tmp.png,sep='/')
-            file.remove(xml.tmp)
-            file.remove(png.tmp)
-            }
-            
-            if (keggFC == "no")
-            {
-            pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
-            tmp.xml <- paste(pid,".xml",sep='')
-            xml.tmp <- paste(this.dir,tmp.xml,sep='/')
-            tmp.png <- paste(pid,".png",sep='')
-            png.tmp <- paste(this.dir,tmp.png,sep='/')
-            file.remove(xml.tmp)
-            file.remove(png.tmp)
-            }
-          }
-        
-        pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
-          
-      }
-      
-  
-}
-    library(dplyr)    
+    
     colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","Ensembl.ids","Entrez.ids","External.ids")
+    colnames(pathways.hypergeometric.results.sig) <- c("Pathway","p.val","FDR q.val","goi.count")
     
     # make FDR q.val numeric and sort 
     pathways.hypergeometric.results$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results$`FDR q.val`))
@@ -814,16 +789,23 @@ if (doKEGG == "yes")
     kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
     write.table(pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
     
+    pathways.hypergeometric.results.sig$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results.sig$`FDR q.val`))
+    pathways.hypergeometric.results.sig$goi.count <- as.numeric(as.character(pathways.hypergeometric.results.sig$goi.count))
+    pathways.hypergeometric.results.sig <- pathways.hypergeometric.results.sig[pathways.hypergeometric.results.sig$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results.sig$goi.count >= min.genes.cutoff, ]
+    
     ##############################################################################################  
     # draw plot of enriched pathways
     ############################################################################################## 
-    colnames(pathways.hypergeometric.results.sig) <- c("Pathway","p.val","FDR q.val","goi.count")
-
+   
     if (nrow(pathways.hypergeometric.results.sig)>0)
     {
       
       
-      pathways.hypergeometric.results.sig$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results.sig$`FDR q.val`))
+      pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
+     
+      ## replace FDR qval of 0 with v small number to avoid infinite values. 
+      pathways.hypergeometric.results.sig <- within(pathways.hypergeometric.results.sig, `FDR q.val`[`FDR q.val` == 0] <- 1e-10)
+      
       pathways.hypergeometric.results.sig <-  pathways.hypergeometric.results.sig[with(pathways.hypergeometric.results.sig, order(pathways.hypergeometric.results.sig$`FDR q.val`)), ]
       
       pathways.hypergeometric.results.sig$goi.count <- as.numeric(as.character(pathways.hypergeometric.results.sig$goi.count))
@@ -832,8 +814,9 @@ if (doKEGG == "yes")
       
       top.pathways.hypergeometric.results.sig <- head(pathways.hypergeometric.results.sig,10)
       top.pathways.hypergeometric.results.sig$Pathway <- factor(top.pathways.hypergeometric.results.sig$Pathway, levels = top.pathways.hypergeometric.results.sig$Pathway)
-      max.y.plot = 1.2*(max(-log10(top.pathways.hypergeometric.results.sig$`FDR q.val`)))
       
+      
+      max.y.plot = 1.2*(max(-log10(top.pathways.hypergeometric.results.sig$`FDR q.val`)))
       sig.kegg.plot <-
         ggplot(data = top.pathways.hypergeometric.results.sig,
                aes(x = as.factor(Pathway), y = -log10(top.pathways.hypergeometric.results.sig$`FDR q.val`),
@@ -854,7 +837,7 @@ if (doKEGG == "yes")
         ylim(-0.5,max.y.plot)+
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
-
+      
       
       kegg.pdf.out = paste(outfile.prefix,"KEGG.Significant.enrichment.plot.pdf",sep=".")
       pdf(kegg.pdf.out)
@@ -862,6 +845,60 @@ if (doKEGG == "yes")
       dev.off()
       stats.KEGG.fail = 1
     }
+    
+    
+
+    
+     
+      
+##############################################################################################  
+# draw Pathview plots of top enriched KEGG pathways
+##############################################################################################    
+detach("package:dplyr") # to overcome occasional issues of pathview clashing with dplyr
+top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hypergeometric.results.sig$Pathway)
+    
+    for (i in 1:nrow(top.pathways.hypergeometric.results.sig))
+      {
+      current.sig.pathway = top.pathways.hypergeometric.results.sig$Pathway[i]
+      pid <- substr(current.sig.pathway, start=1, stop=8) # get kegg ids 
+      num.pid <- substr(pid, start=4, stop=8) # get kegg ids
+
+        if(num.pid != "01100") # avoid drawing entire metabolic pathway plot.
+          {
+            if (keggFC == "yes")
+            {
+            pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code)
+            tmp.xml <- paste(pid,".xml",sep='')
+            xml.tmp <- paste(this.dir,tmp.xml,sep='/')
+            tmp.png <- paste(pid,".png",sep='')
+            png.tmp <- paste(this.dir,tmp.png,sep='/')
+            old.pathview = paste(pid,"pathview.png",sep=".")
+            new.pathview = paste(outfile.prefix,old.pathview,sep=".")
+            file.remove(xml.tmp)
+            file.remove(png.tmp)
+            file.rename(old.pathview, new.pathview)
+            }
+
+            if (keggFC == "no")
+            {
+            pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
+            tmp.xml <- paste(pid,".xml",sep='')
+            xml.tmp <- paste(this.dir,tmp.xml,sep='/')
+            tmp.png <- paste(pid,".png",sep='')
+            png.tmp <- paste(this.dir,tmp.png,sep='/')
+            old.pathview = paste(pid,"pathview.png",sep=".")
+            new.pathview = paste(outfile.prefix,old.pathview,sep=".")
+            file.remove(xml.tmp)
+            file.remove(png.tmp)
+            file.rename(old.pathview, new.pathview)
+            
+            }
+        }
+        }
+      
+  
+
+
     if (stats.KEGG.fail == 0)
     {
       cat(c("KEGG analysis no terms pass statistical cutoff"),
