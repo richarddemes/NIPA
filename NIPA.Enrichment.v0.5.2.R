@@ -855,7 +855,11 @@ if (doKEGG == "yes")
 # draw Pathview plots of top enriched KEGG pathways
 ##############################################################################################    
 detach("package:dplyr") # to overcome occasional issues of pathview clashing with dplyr
-top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hypergeometric.results.sig$Pathway)
+
+    
+    if (stats.KEGG.fail == 1)
+    {
+    top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hypergeometric.results.sig$Pathway)
     
     for (i in 1:nrow(top.pathways.hypergeometric.results.sig))
       {
@@ -895,7 +899,7 @@ top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hyp
             }
         }
         }
-      
+    }
   
 
 
@@ -907,4 +911,7 @@ top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hyp
     
   }
 }
+
+
+
 
