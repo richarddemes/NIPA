@@ -31,7 +31,7 @@ library(RamiGO)
 goi.column = 1                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "no"             # "yes" or "no" if header on file 
 
-species = "mouse"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
+species = "sheep"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
 outfile.prefix <- "ADAC.test" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
@@ -215,7 +215,6 @@ if (length(goi.entrez)==0 )
 fail.GO.MF = 0
 fail.GO.BP = 0
 fail.GO.CC = 0
-fail.reactome = 0
 fail.KEGG = 0
 stats.KEGG.fail = 0
 
@@ -296,14 +295,17 @@ if (doGO == "yes")
     
     if (nrow(top.result.BP) > 0)
     {
-      top.result.BP$pval[top.result.BP$pval == 0 ] <- min(top.result.BP$pval[top.result.BP$pval > 0])  # catches any where p value = 0 and makes it equal to smallest p value.
+      current.min.pval <- min(top.result.BP$pval[top.result.BP$pval > 0])
+      if (current.min.pval == Inf) {current.min.pval <- 1e-10}
+      top.result.BP$pval[top.result.BP$pval == 0 ] <- current.min.pval  # catches any where p value = 0 and makes it equal to smallest p value.
+      current.counts <- unique(top.result.BP$GOI.gene_count)
       max.y.plot = 1.2*(max(-log10(top.result.BP$pval)))
       sig.BP.plot <-
         ggplot(data = top.result.BP,
                aes(x = as.factor(GO_Name), y = -log10(top.result.BP$pval),
                    size = GOI.gene_count))+
         geom_point() +
-        scale_size_continuous(range = c(4,18), "Gene count")+
+        scale_size_continuous(range = c(4,18), breaks = current.counts, name="Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
@@ -390,14 +392,17 @@ if (doGO == "yes")
     
     if (nrow(top.result.MF) > 0)
     {
-      top.result.MF$pval[top.result.MF$pval == 0 ] <- min(top.result.MF$pval[top.result.MF$pval > 0]) # catches any where p value = 0
+      current.min.pval <- min(top.result.MF$pval[top.result.MF$pval > 0])
+      if (current.min.pval == Inf) {current.min.pval <- 1e-10}
+      top.result.MF$pval[top.result.MF$pval == 0 ] <- current.min.pval  # catches any where p value = 0 and makes it equal to smallest p value.
+      current.counts <- unique(top.result.MF$GOI.gene_count)
       max.y.plot = 1.2*(max(-log10(top.result.MF$pval)))
       sig.MF.plot <-
         ggplot(data = top.result.MF,
                aes(x = as.factor(GO_Name), y = -log10(top.result.MF$pval),
                    size = GOI.gene_count))+
         geom_point() +
-        scale_size_continuous(range = c(4,18), "Gene count")+
+        scale_size_continuous(range = c(4,18), name="Gene count", breaks=current.counts)+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
@@ -484,14 +489,18 @@ if (doGO == "yes")
     
     if (nrow(top.result.CC) > 0)
     {
-      top.result.CC$pval[top.result.CC$pval == 0 ] <- min(top.result.CC$pval[top.result.CC$pval > 0]) # catches any where p value = 0
+      current.min.pval <- min(top.result.CC$pval[top.result.CC$pval > 0])
+      if (current.min.pval == Inf) {current.min.pval <- 1e-10}
+      top.result.CC$pval[top.result.CC$pval == 0 ] <- current.min.pval  # catches any where p value = 0 and makes it equal to smallest p value.
+      current.counts <- unique(top.result.CC$GOI.gene_count)
+      
       max.y.plot = 1.2*(max(-log10(top.result.CC$pval)))
       sig.CC.plot <-
         ggplot(data = top.result.CC,
                aes(x = as.factor(GO_Name), y = -log10(top.result.CC$pval),
                    size = GOI.gene_count))+
         geom_point() +
-        scale_size_continuous(range = c(4,18), "Gene count")+
+        scale_size_continuous(range = c(4,18), name="Gene count",breaks=current.counts)+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
         geom_hline(yintercept=1.30103,lty=2, color="grey") + # equivalent of p = 0.05
         geom_hline(yintercept=2,lty=4, color="grey") + # equivalent of p = 0.01
