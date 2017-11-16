@@ -34,7 +34,7 @@ library(RamiGO)
 goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "no" # "yes" or "no" if header on file 
 
-species = "human"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly", 
+species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly", 
 outfile.prefix <- "ADAC.test" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
