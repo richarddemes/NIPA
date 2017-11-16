@@ -57,7 +57,7 @@ min.genes.cutoff = 2
 
 # change below to determine which test to conduct.
 doGO = "yes"                  # yes or no.       Run hypergeometric test to find enriched GO terms in BP, MF and CC category
-doKEGG = "no"                 # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
+doKEGG = "yes"                 # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 
 ###############################################################################
