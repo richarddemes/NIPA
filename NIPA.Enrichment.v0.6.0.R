@@ -4,8 +4,6 @@
 # uncommmment to install any required packages. 
 ##############################################################
 #biocLite("biomaRt")
-#biocLite("GOstats")
-#biocLite("ReactomePA")
 #biocLite("gage")
 #biocLite("pathview")
 #biocLite("gageData")
@@ -15,53 +13,51 @@
 #biocLite("RamiGO")
 ##############################################################
 
-source("http://www.bioconductor.org/biocLite.R")
-library(GOstats)
+source("https://www.bioconductor.org/biocLite.R")
 library(biomaRt)
 library(pathview)
 library(gage)
 library(gageData)
-library(ReactomePA)
 library(ggplot2)
 library(stringr)
 library(dplyr)
 library(RamiGO)
 
+
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [START]
 ## Check all or may fail.
 ###############################################################################
-goi.column = 1 # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
-goi.header = "no" # "yes" or "no" if header on file 
+goi.column = 1                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
+goi.header = "no"             # "yes" or "no" if header on file 
 
-species = "mouse"   #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly", 
+species = "mouse"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
 outfile.prefix <- "ADAC.test" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
-keggFC = "no" # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 14 # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+keggFC = "no"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
+keggFC.col = 14               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 
-id.type = "ENSG"      # one of
-# "ENSG" (ensembl gene),
-# "ENST" (ensembl trasncript),
-# "ENSP" (ensembl peptide),
-# "Entrez"
-# "Uniprot" (UniProt/SwissProt Accession)
-# "Unigene"
-# "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
-# "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
-# "hgnc" (HGNC ID [e.g. LIS1])
+id.type = "ENSG"              # one of
+                              # "ENSG" (ensembl gene),
+                              # "ENST" (ensembl trasncript),
+                              # "ENSP" (ensembl peptide),
+                              # "Entrez"
+                              # "Uniprot" (UniProt/SwissProt Accession)
+                              # "Unigene"
+                              # "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
+                              # "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
+                              # "hgnc" (HGNC ID [e.g. LIS1])
 
 # set variables for hypergeometric cutoff enrichment qval less than this and with greater or equal to minimum number of genes in pathway or GO term will be drawn
 kegg.qval.cutoff = 0.1
-GO.cutoff = 0.05
+GO.cutoff = 0.05              # qvalue cutoff
 min.genes.cutoff = 2
 
 # change below to determine which test to conduct.
-doGO = "yes" # yes or no.       Run GoStats hypergeometric test to find enriched GO terms in BP, MF and CC category
-doReactome = "no" # yes or no. Run ReactomePA to find enriched pathways in Reactomedb -- BIT SLOWER
-doKEGG = "yes" # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
+doGO = "yes"                  # yes or no.       Run hypergeometric test to find enriched GO terms in BP, MF and CC category
+doKEGG = "no"                 # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 
 ###############################################################################
@@ -91,197 +87,105 @@ setwd(this.dir)
 ###############################################################################
 ## set variables based on species given 
 ###############################################################################
+if (species == "sheep")
+  {
+  ensembl.spp <- "oaries_gene_ensembl"
+  species.kegg.code = "oas"
+  }
+ 
 if (species == "fly")
-{
-  biocLite("org.Dm.eg.db") # for drosophila
-  library(org.Dm.eg.db)    
+  {
   ensembl.spp <- "dmelanogaster_gene_ensembl"
-  species.ens.code = "Dm"
   species.kegg.code = "dme"
-  kegg.data.code = "dm"
-  reactome.spp = "fly" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
-  kegg.gsets.spp <- kegg.gsets(species = "dme", id.type = "kegg")  
-}
+  }
 
 if (species == "mouse")
-{
-  biocLite("org.Mm.eg.db") # for Mouse
-  library(org.Mm.eg.db)    
+  {
   ensembl.spp <- "mmusculus_gene_ensembl"
-  species.ens.code = "Mm"
   species.kegg.code = "mmu"
-  kegg.data.code = "mm"
-  reactome.spp = "mouse" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
-  kegg.gsets.spp <- kegg.gsets(species = "mmu", id.type = "kegg")  
-}
+  }
 
 if (species == "human")
-{
-  biocLite("org.Hs.eg.db") # for Human
-  library(org.Hs.eg.db)    
+  {
   ensembl.spp <- "hsapiens_gene_ensembl"
-  species.ens.code = "Hs"
   species.kegg.code = "hsa"
-  kegg.data.code = "hsa"
-  reactome.spp = "human" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
-  kegg.gsets.spp <- kegg.gsets(species = "hsa", id.type = "kegg")  
-}
+  }
 
 if (species == "rat")
-{
-  biocLite("org.Rn.eg.db") # for Rat
-  library(org.Rn.eg.db)    
+  {
   ensembl.spp <- "rnorvegicus_gene_ensembl"
-  species.ens.code = "Rn"
   species.kegg.code = "rno"
-  kegg.data.code = "rno"
-  reactome.spp = "rat" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
-  kegg.gsets.spp <- kegg.gsets(species = "rno", id.type = "kegg")  
-}
+  }
 
 if (species == "pig")
-{
-  biocLite("org.Ss.eg.db") # for Pig
-  library(org.Ss.eg.db)    
+  {
   ensembl.spp <- "sscrofa_gene_ensembl"
-  species.ens.code = "Ss"
   species.kegg.code = "ssc"
-  kegg.data.code = "ssc"
-  #reactome.spp = "rat" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
-  doReactome = "no"
-  kegg.gsets.spp <- kegg.gsets(species = "ssc", id.type = "kegg")  
-}
+  }
 
 if (species == "zebrafish")
-{
-  biocLite("org.Dr.eg.db") # for Zebrafish
-  library(org.Dr.eg.db)    
+  {
   ensembl.spp <- "drerio_gene_ensembl"
-  species.ens.code = "Dr"
   species.kegg.code = "dre"
-  kegg.data.code = "dre"
-  #reactome.spp = "rat" #one of "human", "rat", "mouse", "celegans", "yeast", "zebrafish", "fly".
-  doReactome = "no"
-  kegg.gsets.spp <- kegg.gsets(species = "dre", id.type = "kegg")  
-}
+  }
 
 if (species == "cow")
-{
-  biocLite("org.Bt.eg.db") # for Cow
-  library(org.Bt.eg.db)    
+  {
   ensembl.spp <- "btaurus_gene_ensembl"
-  species.ens.code = "Bt"
   species.kegg.code = "bta"
-  kegg.data.code = "bta"
-  doReactome = "no"
-  kegg.gsets.spp <- kegg.gsets(species = "bta", id.type = "kegg")  
-}
+  }
 
+##############################################################################
+# Build kegg sets 
+##############################################################################
+kegg.gsets.spp <- kegg.gsets(species = species.kegg.code, id.type = "kegg") 
+kegg.sets.test <- kegg.gsets.spp$kg.sets
+kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 
 
 ##############################################################################
 # Get Data
 ##############################################################################
+
 if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
 if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
 myInterestingGenes <- as.vector(unlist(my.data.in[goi.column]))
 myInterestingGenes <- unique(myInterestingGenes)
 
 
-##############################################################################
-# Build kegg sets 
-##############################################################################
-kegg.sets.test <- kegg.gsets.spp$kg.sets
-kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 
 
 ##############################################################################
-# Convert IDs to Entrez IDs and match to gene input list
+# ADD entrez ids using ensembl for KEGG and match to gene input list
+# ADD GO using ensembl
 ##############################################################################
 
-species.db <- paste("org",species.ens.code,"eg.db",sep=".")
+if (id.type =="ENSG") {id.lookup = 'ensembl_gene_id'}
+if (id.type =="ENSP") {id.lookup = 'ensembl_peptide_id'}
+if (id.type =="ENST") {id.lookup = 'ensembl_transcript_id'}
+if (id.type == "Entrez") {id.lookup = 'entrezgene'}
+if (id.type == "Refseq_mrna") {id.lookup = 'refseq_mrna'}
+if (id.type == "Refseq_peptide") {id.lookup = 'refseq_peptide'}
+if (id.type == "Unigene") {id.lookup ='unigene'}
+if (id.type == "Uniprot") {id.lookup = 'uniprotswissprot'}
+if (id.type == "hgnc") {id.lookup = 'hgnc_symbol'}
+
+
 ensembl = useEnsembl(biomart="ensembl", dataset=ensembl.spp)
 
-if (id.type =="ENSG")
-{
-  all.genes <- getBM(attributes=c('ensembl_gene_id', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-  }
+# Get Gene Id info from ensembl 
+all.genes <- getBM(attributes=c(id.lookup, 'entrezgene', 'external_gene_name'), mart = ensembl)
+colnames(all.genes) <- c("ID","Entrez","Name")
+all.genes.entrez <- na.omit(all.genes)
+all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
+goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
 
-if (id.type =="ENSP")
-{
-  all.genes <- getBM(attributes=c('ensembl_peptide_id', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
 
-if (id.type =="ENST")
-{
-  all.genes <- getBM(attributes=c('ensembl_transcript_id', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
+# include GO terms from Ensembl for later analysis.
+all.genes.GO <- getBM(attributes=c(id.lookup,'go_id','name_1006','namespace_1003'), mart = ensembl)
+colnames(all.genes.GO) <- c("ID","GO_ID","GO_Name","GO_component")
+all.GO.lookup <- unique(all.genes.GO[c("GO_ID","GO_Name")])
 
-if (id.type == "Entrez")
-{
-  all.genes <- getBM(attributes=c('entrezgene', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
-
-if (id.type == "Refseq_mrna")
-{
-  all.genes <- getBM(attributes=c('refseq_mrna', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
-
-if (id.type == "Refseq_peptide")
-{
-  all.genes <- getBM(attributes=c('refseq_peptide', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
-
-if (id.type == "Unigene")
-{
-  all.genes <- getBM(attributes=c('unigene', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
-
-if (id.type == "Uniprot")
-{
-  all.genes <- getBM(attributes=c('uniprotswissprot', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
-
-if (id.type == "hgnc")
-{
-  all.genes <- getBM(attributes=c('hgnc_symbol', 'entrezgene', 'external_gene_name'), mart = ensembl)
-  colnames(all.genes) <- c("ID","Entrez","Name")
-  all.genes.entrez <- na.omit(all.genes)
-  all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
-  goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
-}
 
 # if keggFC = yes create foldchanges named list of log fold change values
 if (keggFC == "yes")
@@ -291,15 +195,6 @@ if (keggFC == "yes")
   names(foldchanges) = entrez.FC.match$Entrez
 }
 
-
-
-
-
-
-##########################################################
-# Set gene "universse" of all genes
-universe <- unique(as.character(all.genes.entrez$Entrez))
-##########################################################
 
 
 ##############################################################################
@@ -334,44 +229,79 @@ stats.KEGG.fail = 0
 
 if (doGO == "yes")
 {
-  # Biological Process
-  params.BP <- new('GOHyperGParams',
-                   geneIds=goi.entrez,
-                   universeGeneIds=universe,
-                   ontology='BP',
-                   pvalueCutoff=GO.cutoff,
-                   conditional=F,
-                   testDirection='over',
-                   annotation=species.db
-  )
-  hgOver.BP <- hyperGTest(params.BP)
-  result.BP <- summary(hgOver.BP)
+  
+  #################################################################################
+  # filter GO by type. 
+  #################################################################################
+  BP.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "biological_process", ]
+  MF.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "molecular_function", ]
+  CC.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "cellular_component", ]
+  
+  ########################################################################################################### 
+  #  Biological Process test GO enrichment by hypergeometric test
+  ########################################################################################################### 
+  # generate table of counts per GO term 
+  BP.genes.GO.GOI <- BP.genes.GO[BP.genes.GO$ID %in% myInterestingGenes, ]
+  
+  BP.genes.GO.table <- as.data.frame(BP.genes.GO %>% group_by(GO_ID) %>% 
+                                      dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                      dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+  BP.genes.GO.table.GOI <- as.data.frame(BP.genes.GO.GOI %>% group_by(GO_ID) %>% 
+                                       dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                       dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+  
+  BP.genes.GO.merge <- merge(BP.genes.GO.table, BP.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
+  BP.genes.GO.merge <- merge(BP.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
+  colnames(BP.genes.GO.merge) <- c("GO_ID","ALL.gene_ids","ALL.gene_count","GOI.gene_ids","GOI.gene_count","GO_Name")
+  BP.genes.GO.merge <- BP.genes.GO.merge[-c(2)] # remove all gene names as not needed
+  
+  universe.size.GO.BP = as.numeric(sum(BP.genes.GO.merge$ALL.gene_count))
+  total.goi.size.GO.BP =  as.numeric(sum(BP.genes.GO.merge$GOI.gene_count))
+  total.goi.size = as.numeric(length(myInterestingGenes))
+  
+  # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
+  working.GO.BP <- unique( BP.genes.GO.merge$GO_ID)
+  GO.BP.hypergeometric.results <- data.frame("GO"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0))
   
   
-  if (nrow(result.BP)==0 )
+  for (i in 1:nrow(BP.genes.GO.merge))
+  {
+    current.GO.BP = BP.genes.GO.merge[i,]
+    goi.in.GO.BP <- as.numeric(current.GO.BP$GOI.gene_count) #  goi count in GO term 
+    total.genes.in.GO.BP <- as.numeric(current.GO.BP$ALL.gene_count) # all gene count in GO term
+    pval <- phyper(goi.in.GO.BP,total.genes.in.GO.BP,(universe.size.GO.BP-total.goi.size.GO.BP),total.goi.size, lower.tail=FALSE)
+    qval <- p.adjust(pval, method = "fdr", n = nrow(BP.genes.GO.merge))
+    working.results <- cbind(current.GO.BP,pval,qval)
+    GO.BP.hypergeometric.results <- rbind(GO.BP.hypergeometric.results,working.results)
+  }
+  BP.table.out = paste(outfile.prefix,"GO.BP.table",sep=".")
+  GO.BP.hypergeometric.results <- GO.BP.hypergeometric.results[order(GO.BP.hypergeometric.results$pval),] # order by Pvalue
+  
+  #check for significant results
+  GO.BP.hypergeometric.results.sig <- GO.BP.hypergeometric.results[GO.BP.hypergeometric.results$qval <= GO.cutoff & GO.BP.hypergeometric.results$GOI.gene_count >= min.genes.cutoff, ]
+  
+  if (nrow(GO.BP.hypergeometric.results.sig)==0 )
   {
     fail.GO.BP = 1
-    cat(c("GO Biological process search identified no enriched terms","Probably too few IDs"),
+    cat(c("GO Biological Process search identified no enriched terms passing cutoffs: Probably too few IDs"),
         file=run.report, append=TRUE, sep='\n')
   }
   if (fail.GO.BP !=1)
   {
-    result.BP <- result.BP[result.BP$Count >= min.genes.cutoff,] # filter those with < cut off count
-    result.BP <- result.BP[order(-result.BP$OddsRatio),] # order by odds ratio
-    
-    top.result.BP <- head(result.BP,15)
-    top.result.BP <- top.result.BP[order(top.result.BP$Pvalue),]
-    top.result.BP$Term <- as.factor(top.result.BP$Term)
-    top.result.BP$Term <- factor(top.result.BP$Term, levels = top.result.BP$Term)
+    write.table(GO.BP.hypergeometric.results.sig, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+    top.result.BP <- head(GO.BP.hypergeometric.results.sig,15)
+    top.result.BP <- top.result.BP[order(top.result.BP$pval),]
+    top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
+    top.result.BP$GO_Name <- factor(top.result.BP$GO_Name, levels = top.result.BP$GO_Name)
     
     if (nrow(top.result.BP) > 0)
     {
-      top.result.BP$Pvalue[top.result.BP$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0
-      max.y.plot = 1.2*(max(-log10(top.result.BP$Pvalue)))
+      top.result.BP$pval[top.result.BP$pval == 0 ] <- min(top.result.BP$pval[top.result.BP$pval > 0])  # catches any where p value = 0 and makes it equal to smallest p value.
+      max.y.plot = 1.2*(max(-log10(top.result.BP$pval)))
       sig.BP.plot <-
         ggplot(data = top.result.BP,
-               aes(x = as.factor(Term), y = -log10(top.result.BP$Pvalue),
-                   size = Count))+
+               aes(x = as.factor(GO_Name), y = -log10(top.result.BP$pval),
+                   size = GOI.gene_count))+
         geom_point() +
         scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
@@ -397,72 +327,75 @@ if (doGO == "yes")
       
       #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
       GO.BP.top.DAG <- paste(outfile.prefix,"GO.BP.top.DAG",sep='.')
-      svgRes <- getAmigoTree(top.result.BP$GOBPID, color="red", pvalues =top.result.BP$Pvalue, filename=GO.BP.top.DAG, picType="svg", saveResult=TRUE)
-      }
-    
-    # Add gene names to results table
-    allgos.BP <- geneIdUniverse(hgOver.BP)
-    output.BP.match <- NULL
-    for (i in 1:nrow(result.BP))
-    {
-      
-      go.holding = result.BP$GOBPID[i]
-      all.entrez.in.GO <- as.vector(unlist(allgos.BP[go.holding]))
-      goi.entrez.in.GO <- intersect(all.entrez.in.GO,goi.entrez)
-      input.in.GO.IDs <- all.genes[all.genes$Entrez %in% goi.entrez.in.GO, 1]
-      input.in.GO.IDs <- unique(input.in.GO.IDs[input.in.GO.IDs != ""])
-      input.in.GO.IDs <- paste(input.in.GO.IDs, collapse = " ")
-      input.in.GO.external <- unique(all.genes[all.genes$Entrez %in% goi.entrez.in.GO, 3])
-      input.in.GO.external <- paste(input.in.GO.external, collapse = " ")
-      temp <- cbind(go.holding,input.in.GO.IDs,input.in.GO.external)
-      output.BP.match <- rbind(output.BP.match,temp)
+      svgRes <- getAmigoTree(top.result.BP$GO_ID, color="red", pvalues =top.result.BP$pval, filename=GO.BP.top.DAG, picType="svg", saveResult=TRUE)
     }
-    result.BP <- merge(result.BP, output.BP.match, by.x ="GOBPID", by.y="go.holding", all.x=TRUE)
-    BP.table.out = paste(outfile.prefix,"GO.BP.table",sep=".")
-    result.BP <- result.BP[order(result.BP$Pvalue),] # order by Pvalue
-    write.table(result.BP, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
-    
   }
   
+  ########################################################################################################### 
+  #  Molecular Function test GO enrichment by hypergeometric test
+  ########################################################################################################### 
+  # generate table of counts per GO term 
+  MF.genes.GO.GOI <- MF.genes.GO[MF.genes.GO$ID %in% myInterestingGenes, ]
+  
+  MF.genes.GO.table <- as.data.frame(MF.genes.GO %>% group_by(GO_ID) %>% 
+                                       dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                       dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+  MF.genes.GO.table.GOI <- as.data.frame(MF.genes.GO.GOI %>% group_by(GO_ID) %>% 
+                                           dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                           dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+  
+  MF.genes.GO.merge <- merge(MF.genes.GO.table, MF.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
+  MF.genes.GO.merge <- merge(MF.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
+  colnames(MF.genes.GO.merge) <- c("GO_ID","ALL.gene_ids","ALL.gene_count","GOI.gene_ids","GOI.gene_count","GO_Name")
+  MF.genes.GO.merge <- MF.genes.GO.merge[-c(2)] # remove all gene names as not needed
+  
+  universe.size.GO.MF = as.numeric(sum(MF.genes.GO.merge$ALL.gene_count))
+  total.goi.size.GO.MF =  as.numeric(sum(MF.genes.GO.merge$GOI.gene_count))
+  total.goi.size = as.numeric(length(myInterestingGenes))
+  
+  # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
+  working.GO.MF <- unique( MF.genes.GO.merge$GO_ID)
+  GO.MF.hypergeometric.results <- data.frame("GO"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0))
   
   
-  # Molecular Function
-  params.MF <- new('GOHyperGParams',
-                   geneIds=goi.entrez,
-                   universeGeneIds=universe,
-                   ontology='MF',
-                   pvalueCutoff=GO.cutoff,
-                   conditional=F,
-                   testDirection='over',
-                   annotation=species.db
-  )
-  hgOver.MF <- hyperGTest(params.MF)
-  result.MF <- summary(hgOver.MF)
+  for (i in 1:nrow(MF.genes.GO.merge))
+  {
+    current.GO.MF = MF.genes.GO.merge[i,]
+    goi.in.GO.MF <- as.numeric(current.GO.MF$GOI.gene_count) #  goi count in GO term 
+    total.genes.in.GO.MF <- as.numeric(current.GO.MF$ALL.gene_count) # all gene count in GO term
+    pval <- phyper(goi.in.GO.MF,total.genes.in.GO.MF,(universe.size.GO.MF-total.goi.size.GO.MF),total.goi.size, lower.tail=FALSE)
+    qval <- p.adjust(pval, method = "fdr", n = nrow(MF.genes.GO.merge))
+    working.results <- cbind(current.GO.MF,pval,qval)
+    GO.MF.hypergeometric.results <- rbind(GO.MF.hypergeometric.results,working.results)
+  }
+  MF.table.out = paste(outfile.prefix,"GO.MF.table",sep=".")
+  GO.MF.hypergeometric.results <- GO.MF.hypergeometric.results[order(GO.MF.hypergeometric.results$pval),] # order by Pvalue
   
-  if (nrow(result.MF)==0 )
+  #check for significant results
+  GO.MF.hypergeometric.results.sig <- GO.MF.hypergeometric.results[GO.MF.hypergeometric.results$qval <= GO.cutoff & GO.MF.hypergeometric.results$GOI.gene_count >= min.genes.cutoff, ]
+  
+  if (nrow(GO.MF.hypergeometric.results.sig)==0 )
   {
     fail.GO.MF = 1
-    cat(c("GO Molecular Function search identified no enriched terms","Probably too few IDs"),
+    cat(c("GO Molecular Function search identified no enriched terms passing cutoffs: Probably too few IDs"),
         file=run.report, append=TRUE, sep='\n')
   }
   if (fail.GO.MF !=1)
   {
-    result.MF <- result.MF[result.MF$Count >= min.genes.cutoff,] # filter those with < cut off count
-    result.MF <- result.MF[order(-result.MF$OddsRatio),] # order by odds ratio
-    
-    top.result.MF <- head(result.MF,15)
-    top.result.MF <- top.result.MF[order(top.result.MF$Pvalue),]
-    top.result.MF$Term <- as.factor(top.result.MF$Term)
-    top.result.MF$Term <- factor(top.result.MF$Term, levels = top.result.MF$Term)
+    write.table(GO.MF.hypergeometric.results.sig, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+    top.result.MF <- head(GO.MF.hypergeometric.results.sig,15)
+    top.result.MF <- top.result.MF[order(top.result.MF$pval),]
+    top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
+    top.result.MF$GO_Name <- factor(top.result.MF$GO_Name, levels = top.result.MF$GO_Name)
     
     if (nrow(top.result.MF) > 0)
     {
-      top.result.MF$Pvalue[top.result.MF$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0 
-      max.y.plot = 1.2*(max(-log10(top.result.MF$Pvalue)))
+      top.result.MF$pval[top.result.MF$pval == 0 ] <- min(top.result.MF$pval[top.result.MF$pval > 0]) # catches any where p value = 0
+      max.y.plot = 1.2*(max(-log10(top.result.MF$pval)))
       sig.MF.plot <-
         ggplot(data = top.result.MF,
-               aes(x = as.factor(Term), y = -log10(top.result.MF$Pvalue),
-                   size = Count))+
+               aes(x = as.factor(GO_Name), y = -log10(top.result.MF$pval),
+                   size = GOI.gene_count))+
         geom_point() +
         scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
@@ -486,71 +419,77 @@ if (doGO == "yes")
       print(sig.MF.plot)
       dev.off()
       
-      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
+      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
       GO.MF.top.DAG <- paste(outfile.prefix,"GO.MF.top.DAG",sep='.')
-      svgRes <- getAmigoTree(top.result.MF$GOMFID, color="red", pvalues =top.result.MF$Pvalue, filename=GO.MF.top.DAG, picType="svg", saveResult=TRUE)
-      
+      svgRes <- getAmigoTree(top.result.MF$GO_ID, color="red", pvalues =top.result.MF$pval, filename=GO.MF.top.DAG, picType="svg", saveResult=TRUE)
     }
-    
-    # Add gene names to results table
-    allgos.MF <- geneIdUniverse(hgOver.MF)
-    output.MF.match <- NULL
-    for (i in 1:nrow(result.MF))
-    {
-      go.holding = result.MF$GOMFID[i]
-      all.entrez.in.GO <- as.vector(unlist(allgos.MF[go.holding]))
-      goi.entrez.in.GO <- intersect(all.entrez.in.GO,goi.entrez)
-      input.in.GO.IDs <- all.genes[all.genes$Entrez %in% goi.entrez.in.GO, 1]
-      input.in.GO.IDs <- unique(input.in.GO.IDs[input.in.GO.IDs != ""])
-      input.in.GO.IDs <- paste(input.in.GO.IDs, collapse = " ")
-      input.in.GO.external <- unique(all.genes[all.genes$Entrez %in% goi.entrez.in.GO, 3])
-      input.in.GO.external <- paste(input.in.GO.external, collapse = " ")
-      temp <- cbind(go.holding,input.in.GO.IDs,input.in.GO.external)
-      output.MF.match <- rbind(output.MF.match,temp)
-    }
-    result.MF <- merge(result.MF, output.MF.match, by.x ="GOMFID", by.y="go.holding", all.x=TRUE)
-    MF.table.out = paste(outfile.prefix,"GO.MF.table",sep=".")
-    result.MF <- result.MF[order(result.MF$Pvalue),] # order by Pvalue
-    write.table(result.MF, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
   }
   
-  # Cellular Compartment
-  params.CC <- new('GOHyperGParams',
-                   geneIds=goi.entrez,
-                   universeGeneIds=universe,
-                   ontology='CC',
-                   pvalueCutoff=GO.cutoff,
-                   conditional=F,
-                   testDirection='over',
-                   annotation=species.db
-  )
-  hgOver.CC <- hyperGTest(params.CC)
-  result.CC <- summary(hgOver.CC)
+  ########################################################################################################### 
+  #  Cellular Component test GO enrichment by hypergeometric test
+  ########################################################################################################### 
+  # generate table of counts per GO term 
+  CC.genes.GO.GOI <- CC.genes.GO[CC.genes.GO$ID %in% myInterestingGenes, ]
   
-  if (nrow(result.CC)==0 )
+  CC.genes.GO.table <- as.data.frame(CC.genes.GO %>% group_by(GO_ID) %>% 
+                                       dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                       dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+  CC.genes.GO.table.GOI <- as.data.frame(CC.genes.GO.GOI %>% group_by(GO_ID) %>% 
+                                           dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                           dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+  
+  CC.genes.GO.merge <- merge(CC.genes.GO.table, CC.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
+  CC.genes.GO.merge <- merge(CC.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
+  colnames(CC.genes.GO.merge) <- c("GO_ID","ALL.gene_ids","ALL.gene_count","GOI.gene_ids","GOI.gene_count","GO_Name")
+  CC.genes.GO.merge <- CC.genes.GO.merge[-c(2)] # remove all gene names as not needed
+  
+  universe.size.GO.CC = as.numeric(sum(CC.genes.GO.merge$ALL.gene_count))
+  total.goi.size.GO.CC =  as.numeric(sum(CC.genes.GO.merge$GOI.gene_count))
+  total.goi.size = as.numeric(length(myInterestingGenes))
+  
+  # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
+  working.GO.CC <- unique( CC.genes.GO.merge$GO_ID)
+  GO.CC.hypergeometric.results <- data.frame("GO"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0))
+  
+  
+  for (i in 1:nrow(CC.genes.GO.merge))
+  {
+    current.GO.CC = CC.genes.GO.merge[i,]
+    goi.in.GO.CC <- as.numeric(current.GO.CC$GOI.gene_count) #  goi count in GO term 
+    total.genes.in.GO.CC <- as.numeric(current.GO.CC$ALL.gene_count) # all gene count in GO term
+    pval <- phyper(goi.in.GO.CC,total.genes.in.GO.CC,(universe.size.GO.CC-total.goi.size.GO.CC),total.goi.size, lower.tail=FALSE)
+    qval <- p.adjust(pval, method = "fdr", n = nrow(CC.genes.GO.merge))
+    working.results <- cbind(current.GO.CC,pval,qval)
+    GO.CC.hypergeometric.results <- rbind(GO.CC.hypergeometric.results,working.results)
+  }
+  CC.table.out = paste(outfile.prefix,"GO.CC.table",sep=".")
+  GO.CC.hypergeometric.results <- GO.CC.hypergeometric.results[order(GO.CC.hypergeometric.results$pval),] # order by Pvalue
+  
+  #check for significant results
+  GO.CC.hypergeometric.results.sig <- GO.CC.hypergeometric.results[GO.CC.hypergeometric.results$qval <= GO.cutoff & GO.CC.hypergeometric.results$GOI.gene_count >= min.genes.cutoff, ]
+  
+  if (nrow(GO.CC.hypergeometric.results.sig)==0 )
   {
     fail.GO.CC = 1
-    cat(c("GO Cellular location search identified no enriched terms","Probably too few IDs"),
+    cat(c("GO Cellular Compartment search identified no enriched terms passing cutoffs: Probably too few IDs"),
         file=run.report, append=TRUE, sep='\n')
   }
-  
   if (fail.GO.CC !=1)
   {
-    result.CC <- result.CC[result.CC$Count >= min.genes.cutoff,] # filter those with < cut off count
-    result.CC <- result.CC[order(-result.CC$OddsRatio),] # order by odds ratio
-    top.result.CC <- head(result.CC,15)
-    top.result.CC <- top.result.CC[order(top.result.CC$Pvalue),]
-    top.result.CC$Term <- as.factor(top.result.CC$Term)
-    top.result.CC$Term <- factor(top.result.CC$Term, levels = top.result.CC$Term)
+    write.table(GO.CC.hypergeometric.results.sig, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+    top.result.CC <- head(GO.CC.hypergeometric.results.sig,15)
+    top.result.CC <- top.result.CC[order(top.result.CC$pval),]
+    top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
+    top.result.CC$GO_Name <- factor(top.result.CC$GO_Name, levels = top.result.CC$GO_Name)
     
     if (nrow(top.result.CC) > 0)
     {
-      top.result.CC$Pvalue[top.result.CC$Pvalue == 0 ] <- 1e-10 # catches any where p value = 0
-      max.y.plot = 1.2*(max(-log10(top.result.CC$Pvalue)))
+      top.result.CC$pval[top.result.CC$pval == 0 ] <- min(top.result.CC$pval[top.result.CC$pval > 0]) # catches any where p value = 0
+      max.y.plot = 1.2*(max(-log10(top.result.CC$pval)))
       sig.CC.plot <-
         ggplot(data = top.result.CC,
-               aes(x = as.factor(Term), y = -log10(top.result.CC$Pvalue),
-                   size = Count))+
+               aes(x = as.factor(GO_Name), y = -log10(top.result.CC$pval),
+                   size = GOI.gene_count))+
         geom_point() +
         scale_size_continuous(range = c(4,18), "Gene count")+
         scale_x_discrete(labels = function(x) str_wrap(x, width = 30))+
@@ -568,112 +507,27 @@ if (doGO == "yes")
         xlab("") +
         ylab("Enrichment (-log10 pvalue)")
       
+      
       CC.plot.out = paste(outfile.prefix,"GO.CC.Significant.enrichment.plot.pdf",sep=".")
       pdf(CC.plot.out)
       print(sig.CC.plot)
       dev.off()
       
-      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms. 
+      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
       GO.CC.top.DAG <- paste(outfile.prefix,"GO.CC.top.DAG",sep='.')
-      svgRes <- getAmigoTree(top.result.CC$GOCCID, color="red", pvalues =top.result.CC$Pvalue, filename=GO.CC.top.DAG, picType="svg", saveResult=TRUE)
-      
+      svgRes <- getAmigoTree(top.result.CC$GO_ID, color="red", pvalues =top.result.CC$pval, filename=GO.CC.top.DAG, picType="svg", saveResult=TRUE)
     }
-    
-    
-    # Add gene names to results table
-    allgos.CC <- geneIdUniverse(hgOver.CC)
-    output.CC.match <- NULL
-    for (i in 1:nrow(result.CC))
-    {
-      go.holding = result.CC$GOCCID[i]
-      all.entrez.in.GO <- as.vector(unlist(allgos.CC[go.holding]))
-      goi.entrez.in.GO <- intersect(all.entrez.in.GO,goi.entrez)
-      input.in.GO.IDs <- all.genes[all.genes$Entrez %in% goi.entrez.in.GO, 1]
-      input.in.GO.IDs <- unique(input.in.GO.IDs[input.in.GO.IDs != ""])
-      input.in.GO.IDs <- paste(input.in.GO.IDs, collapse = " ")
-      input.in.GO.external <- unique(all.genes[all.genes$Entrez %in% goi.entrez.in.GO, 3])
-      input.in.GO.external <- paste(input.in.GO.external, collapse = " ")
-      temp <- cbind(go.holding,input.in.GO.IDs,input.in.GO.external)
-      output.CC.match <- rbind(output.CC.match,temp)
-    }
-    result.CC <- merge(result.CC, output.CC.match, by.x ="GOCCID", by.y="go.holding", all.x=TRUE)
-    CC.table.out = paste(outfile.prefix,"GO.CC.table",sep=".")
-    result.CC <- result.CC[order(result.CC$Pvalue),] # order by Pvalue
-    write.table(result.CC, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
   }
+  
+  
+  
+  
 }
-
-
-##############################################################################
-##############################################################################
-#
-# part 2 Pathway analysis
-# 
-##############################################################################
-##############################################################################
-
-if (doReactome == "yes")
-{
-  reactome.out <- enrichPathway(gene=goi.entrez,
-                                #pvalueCutoff=0.05,
-                                readable=T,
-                                organism = reactome.spp,
-                                pAdjustMethod = "BH",
-                                qvalueCutoff = 0.01,
-                                universe = universe
-  )
-  
-  reactome.writeout <- (as.data.frame(reactome.out))
-  
-  if (nrow(reactome.writeout) == 0)
-  {
-    fail.reactome = 1
-    cat(c("Reactome analysis identified no enriched pathways","Probably too few IDs"),
-        file=run.report, append=TRUE, sep='\n')
-  }
-  
-  if (fail.reactome==0)
-  {
-    reactome.table.out = paste(outfile.prefix,"reactome.pathway.enrichment.table",sep=".")
-    write.table(reactome.writeout, file=reactome.table.out, row.names = FALSE, col.names = TRUE, quote=FALSE, sep='\t')
-    
-    reactome.dot <- dotplot <- dotplot(
-      reactome.out,
-      showCategory=15,
-      font.size = 12
-    )
-    reactome.plot.out = paste(outfile.prefix,"reactome.pathway.enrichment.dotplot.tiff",sep=".")
-    tiff(filename=reactome.plot.out,
-         width = 320,
-         height = 240,
-         units = "mm",
-         res=800
-    )
-    print(reactome.dot)
-    dev.off()
-    
-    reactome.map.out = paste(outfile.prefix,"reactome.pathway.enrichment.enrichmap.tiff",sep=".")
-    tiff(filename=reactome.map.out,
-         width = 320,
-         height = 240,
-         units = "mm",
-         res=800,
-         type = "Xlib",
-         pointsize = 12
-    )
-    enrichMap(reactome.out,
-              layout=igraph::layout.kamada.kawai,
-              vertex.label.cex = 0.8
-    )
-    dev.off()
-  }
-}
-
 ####
 ##############################################################################
 ##############################################################################
 #
-# part 3 KEGG analysis
+# part 2 KEGG analysis
 # 
 ##############################################################################
 ##############################################################################
@@ -692,7 +546,7 @@ if (doKEGG == "yes")
   if (nrow(keggres.pathways.out) ==0)
   {
     fail.KEGG = 1
-    cat(c("KEGG analysis identified no enriched pathways","Probably too few IDs"),
+    cat(c("KEGG analysis identified no enriched pathways: Probably too few IDs"),
         file=run.report, append=TRUE, sep='\n')
   }
   
@@ -738,12 +592,11 @@ if (doKEGG == "yes")
     #################################################################################################################
     
     
-    #universe.size = as.numeric(length(universe))
     kegg.universe.size = as.numeric(length(unique(unlist(kegg.sets.test)))) # number of unique entrez genes in any kegg pathway 
     total.goi.size = as.numeric(length(goi.entrez))
     
 
-# run phyper for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
+    # run phyper for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
     working.pathways <- unique(matching.kegg.sets.spp.df$kegg.id)
     
     pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0))
@@ -906,7 +759,7 @@ detach("package:dplyr") # to overcome occasional issues of pathview clashing wit
 
     if (stats.KEGG.fail == 0)
     {
-      cat(c("KEGG analysis no terms pass statistical cutoff"),
+      cat(c("KEGG analysis: no pathways pass statistical cutoffs"),
           file=run.report, append=TRUE, sep='\n')
     }
     
