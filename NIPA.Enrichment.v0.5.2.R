@@ -178,29 +178,29 @@ if (species == "cow")
 }
 
 
+
+##############################################################################
+# Get Data
+##############################################################################
+if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
+if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
+myInterestingGenes <- as.vector(unlist(my.data.in[goi.column]))
+myInterestingGenes <- unique(myInterestingGenes)
+
+
 ##############################################################################
 # Build kegg sets 
 ##############################################################################
 kegg.sets.test <- kegg.gsets.spp$kg.sets
 kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 
-##############################################################################
-# Get Data
-##############################################################################
-
-if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
-if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
-myInterestingGenes <- as.vector(unlist(my.data.in[goi.column]))
-myInterestingGenes <- unique(myInterestingGenes)
-
-species.db <- paste("org",species.ens.code,"eg.db",sep=".")
-ensembl = useEnsembl(biomart="ensembl", dataset=ensembl.spp)
-
-
 
 ##############################################################################
 # Convert IDs to Entrez IDs and match to gene input list
 ##############################################################################
+
+species.db <- paste("org",species.ens.code,"eg.db",sep=".")
+ensembl = useEnsembl(biomart="ensembl", dataset=ensembl.spp)
 
 if (id.type =="ENSG")
 {
