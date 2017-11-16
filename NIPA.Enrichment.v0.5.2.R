@@ -738,7 +738,8 @@ if (doKEGG == "yes")
     #################################################################################################################
     
     
-    universe.size = as.numeric(length(universe))
+    #universe.size = as.numeric(length(universe))
+    kegg.universe.size = as.numeric(length(unique(unlist(kegg.sets.test)))) # number of unique entrez genes in any kegg pathway 
     total.goi.size = as.numeric(length(goi.entrez))
     
 
@@ -754,7 +755,7 @@ if (doKEGG == "yes")
       goi.in.pathway <- as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
       total.genes.in.pathway <- as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
       
-      pval <- phyper(goi.in.pathway,total.genes.in.pathway,(universe.size-total.genes.in.pathway),total.goi.size, lower.tail=FALSE)
+      pval <- phyper(goi.in.pathway,total.genes.in.pathway,(kegg.universe.size-total.genes.in.pathway),total.goi.size, lower.tail=FALSE)
       qval <- p.adjust(pval, method = "fdr", n = nrow(keggres.pathways.out))
       
       current.goi <- goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ]
