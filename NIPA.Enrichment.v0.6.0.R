@@ -60,6 +60,7 @@ doGO = "yes"                  # yes or no.       Run hypergeometric test to find
 doKEGG = "yes"                 # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
 
+
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [END]
 ###############################################################################
@@ -242,12 +243,12 @@ if (doGO == "yes")
   # generate table of counts per GO term 
   BP.genes.GO.GOI <- BP.genes.GO[BP.genes.GO$ID %in% myInterestingGenes, ]
   
-  BP.genes.GO.table <- as.data.frame(BP.genes.GO %>% group_by(GO_ID) %>% 
+  BP.genes.GO.table <- as.data.frame(BP.genes.GO %>% dplyr::group_by(GO_ID) %>% 
                                       dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                      dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
-  BP.genes.GO.table.GOI <- as.data.frame(BP.genes.GO.GOI %>% group_by(GO_ID) %>% 
+                                      dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
+  BP.genes.GO.table.GOI <- as.data.frame(BP.genes.GO.GOI %>% dplyr::group_by(GO_ID) %>% 
                                        dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                       dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+                                       dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
   
   BP.genes.GO.merge <- merge(BP.genes.GO.table, BP.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
   BP.genes.GO.merge <- merge(BP.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
@@ -339,12 +340,12 @@ if (doGO == "yes")
   # generate table of counts per GO term 
   MF.genes.GO.GOI <- MF.genes.GO[MF.genes.GO$ID %in% myInterestingGenes, ]
   
-  MF.genes.GO.table <- as.data.frame(MF.genes.GO %>% group_by(GO_ID) %>% 
+  MF.genes.GO.table <- as.data.frame(MF.genes.GO %>% dplyr::group_by(GO_ID) %>% 
                                        dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                       dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
-  MF.genes.GO.table.GOI <- as.data.frame(MF.genes.GO.GOI %>% group_by(GO_ID) %>% 
+                                       dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
+  MF.genes.GO.table.GOI <- as.data.frame(MF.genes.GO.GOI %>% dplyr::group_by(GO_ID) %>% 
                                            dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                           dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+                                           dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
   
   MF.genes.GO.merge <- merge(MF.genes.GO.table, MF.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
   MF.genes.GO.merge <- merge(MF.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
@@ -436,12 +437,12 @@ if (doGO == "yes")
   # generate table of counts per GO term 
   CC.genes.GO.GOI <- CC.genes.GO[CC.genes.GO$ID %in% myInterestingGenes, ]
   
-  CC.genes.GO.table <- as.data.frame(CC.genes.GO %>% group_by(GO_ID) %>% 
+  CC.genes.GO.table <- as.data.frame(CC.genes.GO %>% dplyr::group_by(GO_ID) %>% 
                                        dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                       dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
-  CC.genes.GO.table.GOI <- as.data.frame(CC.genes.GO.GOI %>% group_by(GO_ID) %>% 
+                                       dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
+  CC.genes.GO.table.GOI <- as.data.frame(CC.genes.GO.GOI %>% dplyr::group_by(GO_ID) %>% 
                                            dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                           dplyr::mutate(gene_count = str_count(gene_ids, "ENS")))
+                                           dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
   
   CC.genes.GO.merge <- merge(CC.genes.GO.table, CC.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
   CC.genes.GO.merge <- merge(CC.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
