@@ -289,7 +289,7 @@ if (doGO == "yes")
   if (fail.GO.BP !=1)
   {
     write.table(GO.BP.hypergeometric.results.sig, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
-    top.result.BP <- head(GO.BP.hypergeometric.results.sig,15)
+    top.result.BP <- head(GO.BP.hypergeometric.results.sig,10)
     top.result.BP <- top.result.BP[order(top.result.BP$pval),]
     top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
     top.result.BP$GO_Name <- factor(top.result.BP$GO_Name, levels = top.result.BP$GO_Name)
@@ -386,7 +386,7 @@ if (doGO == "yes")
   if (fail.GO.MF !=1)
   {
     write.table(GO.MF.hypergeometric.results.sig, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
-    top.result.MF <- head(GO.MF.hypergeometric.results.sig,15)
+    top.result.MF <- head(GO.MF.hypergeometric.results.sig,10)
     top.result.MF <- top.result.MF[order(top.result.MF$pval),]
     top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
     top.result.MF$GO_Name <- factor(top.result.MF$GO_Name, levels = top.result.MF$GO_Name)
@@ -483,7 +483,7 @@ if (doGO == "yes")
   if (fail.GO.CC !=1)
   {
     write.table(GO.CC.hypergeometric.results.sig, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
-    top.result.CC <- head(GO.CC.hypergeometric.results.sig,15)
+    top.result.CC <- head(GO.CC.hypergeometric.results.sig,10)
     top.result.CC <- top.result.CC[order(top.result.CC$pval),]
     top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
     top.result.CC$GO_Name <- factor(top.result.CC$GO_Name, levels = top.result.CC$GO_Name)
@@ -642,7 +642,7 @@ if (doKEGG == "yes")
     }  
 
     
-    colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","Ensembl.ids","Entrez.ids","External.ids")
+    colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","GOI.ids","Entrez.ids","External.ids")
     colnames(pathways.hypergeometric.results.sig) <- c("Pathway","p.val","FDR q.val","goi.count")
     
     # make FDR q.val numeric and sort 
