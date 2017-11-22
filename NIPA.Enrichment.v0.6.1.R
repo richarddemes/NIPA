@@ -192,8 +192,8 @@ all.GO.lookup <- unique(all.genes.GO[c("GO_ID","GO_Name")])
 if (keggFC == "yes")
 {
   entrez.FC.match <- merge(all.genes.entrez,my.data.in,by.x="ID",by.y=names(my.data.in[goi.column]))
-  foldchanges = unlist(entrez.FC.match[keggFC.col+2])
-  names(foldchanges) = entrez.FC.match$Entrez
+  foldchanges = as.character(unlist(entrez.FC.match[keggFC.col+2]))
+  names(foldchanges) = as.character(entrez.FC.match$Entrez)
 }
 
 
