@@ -32,7 +32,6 @@ goi.column = 1                # if results are from analysis and are a column of
 goi.header = "no"             # "yes" or "no" if header on file 
 
 species = "mouse"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
-outfile.prefix <- "ADAC.test" # prefix attached to output files. 
 
 # colour pathways by expression fold change?
 keggFC = "no"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
@@ -85,6 +84,7 @@ goi.list <- file.choose()
 this.dir <- dirname(goi.list)
 setwd(this.dir)
 
+outfile.prefix <- goi.list # prefix attached to output files. 
 ###############################################################################
 ## set variables based on species given 
 ###############################################################################
