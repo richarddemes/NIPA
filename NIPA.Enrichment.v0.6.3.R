@@ -50,7 +50,7 @@ id.type = "ENSG"              # one of
                               # "hgnc" (HGNC ID [e.g. LIS1])
 
 # set variables for hypergeometric cutoff enrichment qval less than this and with greater or equal to minimum number of genes in pathway or GO term will be drawn
-kegg.qval.cutoff = 0.1
+kegg.qval.cutoff = 0.05
 GO.cutoff = 0.05              # qvalue cutoff
 min.genes.cutoff = 2
 
@@ -181,6 +181,7 @@ all.genes.entrez <- na.omit(all.genes)
 all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
 goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
 
+universe.size <- as.numeric(length(unique(all.genes.entrez$ID)))
 
 # include GO terms from Ensembl for later analysis.
 all.genes.GO <- getBM(attributes=c(id.lookup,'go_id','name_1006','namespace_1003'), mart = ensembl)
@@ -255,9 +256,7 @@ if (doGO == "yes")
   colnames(BP.genes.GO.merge) <- c("GO_ID","ALL.gene_ids","ALL.gene_count","GOI.gene_ids","GOI.gene_count","GO_Name")
   BP.genes.GO.merge <- BP.genes.GO.merge[-c(2)] # remove all gene names as not needed
   
-  universe.size.GO.BP = as.numeric(sum(BP.genes.GO.merge$ALL.gene_count))
-  total.goi.size.GO.BP =  as.numeric(sum(BP.genes.GO.merge$GOI.gene_count))
-  total.goi.size = as.numeric(length(myInterestingGenes))
+  
   
   # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
   working.GO.BP <- unique( BP.genes.GO.merge$GO_ID)
@@ -267,9 +266,14 @@ if (doGO == "yes")
   for (i in 1:nrow(BP.genes.GO.merge))
   {
     current.GO.BP = BP.genes.GO.merge[i,]
-    goi.in.GO.BP <- as.numeric(current.GO.BP$GOI.gene_count) #  goi count in GO term 
-    total.genes.in.GO.BP <- as.numeric(current.GO.BP$ALL.gene_count) # all gene count in GO term
-    pval <- phyper(goi.in.GO.BP,total.genes.in.GO.BP,(universe.size.GO.BP-total.goi.size.GO.BP),total.goi.size, lower.tail=FALSE)
+    
+    sample_success = as.numeric(current.GO.BP$GOI.gene_count) #  goi count in GO term 
+    population_success = as.numeric(current.GO.BP$ALL.gene_count) # all gene count in GO term
+    population_not_success = (universe.size-population_success)
+    sample_size = as.numeric(length(unique(myInterestingGenes)))
+    
+    
+    pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
     qval <- p.adjust(pval, method = "fdr", n = nrow(BP.genes.GO.merge))
     working.results <- cbind(current.GO.BP,pval,qval)
     GO.BP.hypergeometric.results <- rbind(GO.BP.hypergeometric.results,working.results)
@@ -352,10 +356,6 @@ if (doGO == "yes")
   colnames(MF.genes.GO.merge) <- c("GO_ID","ALL.gene_ids","ALL.gene_count","GOI.gene_ids","GOI.gene_count","GO_Name")
   MF.genes.GO.merge <- MF.genes.GO.merge[-c(2)] # remove all gene names as not needed
   
-  universe.size.GO.MF = as.numeric(sum(MF.genes.GO.merge$ALL.gene_count))
-  total.goi.size.GO.MF =  as.numeric(sum(MF.genes.GO.merge$GOI.gene_count))
-  total.goi.size = as.numeric(length(myInterestingGenes))
-  
   # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
   working.GO.MF <- unique( MF.genes.GO.merge$GO_ID)
   GO.MF.hypergeometric.results <- data.frame("GO"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0))
@@ -364,9 +364,13 @@ if (doGO == "yes")
   for (i in 1:nrow(MF.genes.GO.merge))
   {
     current.GO.MF = MF.genes.GO.merge[i,]
-    goi.in.GO.MF <- as.numeric(current.GO.MF$GOI.gene_count) #  goi count in GO term 
-    total.genes.in.GO.MF <- as.numeric(current.GO.MF$ALL.gene_count) # all gene count in GO term
-    pval <- phyper(goi.in.GO.MF,total.genes.in.GO.MF,(universe.size.GO.MF-total.goi.size.GO.MF),total.goi.size, lower.tail=FALSE)
+    sample_success = as.numeric(current.GO.MF$GOI.gene_count) #  goi count in GO term 
+    population_success = as.numeric(current.GO.MF$ALL.gene_count) # all gene count in GO term
+    population_not_success = (universe.size-population_success)
+    sample_size = as.numeric(length(unique(myInterestingGenes)))
+    
+    
+    pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
     qval <- p.adjust(pval, method = "fdr", n = nrow(MF.genes.GO.merge))
     working.results <- cbind(current.GO.MF,pval,qval)
     GO.MF.hypergeometric.results <- rbind(GO.MF.hypergeometric.results,working.results)
@@ -449,10 +453,6 @@ if (doGO == "yes")
   colnames(CC.genes.GO.merge) <- c("GO_ID","ALL.gene_ids","ALL.gene_count","GOI.gene_ids","GOI.gene_count","GO_Name")
   CC.genes.GO.merge <- CC.genes.GO.merge[-c(2)] # remove all gene names as not needed
   
-  universe.size.GO.CC = as.numeric(sum(CC.genes.GO.merge$ALL.gene_count))
-  total.goi.size.GO.CC =  as.numeric(sum(CC.genes.GO.merge$GOI.gene_count))
-  total.goi.size = as.numeric(length(myInterestingGenes))
-  
   # do for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
   working.GO.CC <- unique( CC.genes.GO.merge$GO_ID)
   GO.CC.hypergeometric.results <- data.frame("GO"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0))
@@ -461,9 +461,12 @@ if (doGO == "yes")
   for (i in 1:nrow(CC.genes.GO.merge))
   {
     current.GO.CC = CC.genes.GO.merge[i,]
-    goi.in.GO.CC <- as.numeric(current.GO.CC$GOI.gene_count) #  goi count in GO term 
-    total.genes.in.GO.CC <- as.numeric(current.GO.CC$ALL.gene_count) # all gene count in GO term
-    pval <- phyper(goi.in.GO.CC,total.genes.in.GO.CC,(universe.size.GO.CC-total.goi.size.GO.CC),total.goi.size, lower.tail=FALSE)
+    sample_success = as.numeric(current.GO.CC$GOI.gene_count) #  goi count in GO term 
+    population_success = as.numeric(current.GO.CC$ALL.gene_count) # all gene count in GO term
+    population_not_success = (universe.size-population_success)
+    sample_size = as.numeric(length(unique(myInterestingGenes)))
+    
+    pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
     qval <- p.adjust(pval, method = "fdr", n = nrow(CC.genes.GO.merge))
     working.results <- cbind(current.GO.CC,pval,qval)
     GO.CC.hypergeometric.results <- rbind(GO.CC.hypergeometric.results,working.results)
@@ -601,24 +604,21 @@ if (doKEGG == "yes")
     #################################################################################################################
     
     
-    kegg.universe.size = as.numeric(length(unique(unlist(kegg.sets.test)))) # number of unique entrez genes in any kegg pathway 
-    total.goi.size = as.numeric(length(goi.entrez))
-    
-
     # run phyper for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
     working.pathways <- unique(matching.kegg.sets.spp.df$kegg.id)
-    
-    pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0))
-    pathways.hypergeometric.results.sig <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0), "goi.count"= numeric(0))
-    
+    pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"FDR q.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0), "goi.count"= numeric(0), "all.count"= numeric(0))
     
     for (i in 1:length(working.pathways)){
       current.pathway = working.pathways[i]
-      goi.in.pathway <- as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
-      total.genes.in.pathway <- as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
       
-      pval <- phyper(goi.in.pathway,total.genes.in.pathway,(kegg.universe.size-total.genes.in.pathway),total.goi.size, lower.tail=FALSE)
-      qval <- p.adjust(pval, method = "fdr", n = nrow(keggres.pathways.out))
+      sample_success = as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ])) 
+      population_success = as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
+      population_not_success = (universe.size-population_success)
+      sample_size = as.numeric(length(unique(myInterestingGenes)))
+      
+      
+      pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
+      qval <- p.adjust(pval, method = "fdr", n = length(working.pathways))
       
       current.goi <- goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ]
       current.goi <- current.goi[1]
@@ -634,27 +634,25 @@ if (doKEGG == "yes")
       current.goi.entrez.ids <- paste(current.goi.entrez.ids, collapse=", ")
       current.goi.ext.ids <- paste(current.goi.ext.ids, collapse=", ")
       
-      current.out <- as.data.frame(cbind(current.pathway,pval,qval,current.goi.ens.ids,current.goi.entrez.ids,current.goi.ext.ids))
-      current.sig.out <- as.data.frame(cbind(current.pathway,pval,qval,goi.in.pathway))
+      current.out <- as.data.frame(cbind(current.pathway,pval,qval,current.goi.ens.ids,current.goi.entrez.ids,current.goi.ext.ids,sample_success,population_success))
       
       pathways.hypergeometric.results <- rbind(pathways.hypergeometric.results, current.out)
-      pathways.hypergeometric.results.sig <- rbind(pathways.hypergeometric.results.sig, current.sig.out)
-    }  
+      }  
 
     
-    colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","GOI.ids","Entrez.ids","External.ids")
-    colnames(pathways.hypergeometric.results.sig) <- c("Pathway","p.val","FDR q.val","goi.count")
+    colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","GOI.ids","Entrez.ids","External.ids","goi.count","All.genes.in.pathway.count")
+
     
-    # make FDR q.val numeric and sort 
+    # make FDR q.val and goi count numeric and sort 
     pathways.hypergeometric.results$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results$`FDR q.val`))
+    pathways.hypergeometric.results$goi.count <- as.numeric(as.character(pathways.hypergeometric.results$goi.count))
     pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
     
-    kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
-    write.table(pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
     
-    pathways.hypergeometric.results.sig$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results.sig$`FDR q.val`))
-    pathways.hypergeometric.results.sig$goi.count <- as.numeric(as.character(pathways.hypergeometric.results.sig$goi.count))
-    pathways.hypergeometric.results.sig <- pathways.hypergeometric.results.sig[pathways.hypergeometric.results.sig$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results.sig$goi.count >= min.genes.cutoff, ]
+    kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
+    write.table( pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
+    
+    pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
     
     ##############################################################################################  
     # draw plot of enriched pathways
@@ -663,6 +661,8 @@ if (doKEGG == "yes")
     if (nrow(pathways.hypergeometric.results.sig)>0)
     {
       
+      kegg.sig.table.out = paste(outfile.prefix,"kegg.pathway.significant.enrichment.table",sep=".")
+      write.table( pathways.hypergeometric.results.sig ,file=kegg.sig.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
       
       pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
      
@@ -774,7 +774,4 @@ detach("package:dplyr") # to overcome occasional issues of pathview clashing wit
     
   }
 }
-
-
-
 
