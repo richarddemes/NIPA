@@ -38,7 +38,7 @@ keggFC = "no"                 # yes or no. will colour enriched KEGG pathways by
 keggFC.col = 14               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 
-id.type = "ENSG"              # one of
+id.type = "external"              # one of
                               # "ENSG" (ensembl gene),
                               # "ENST" (ensembl trasncript),
                               # "ENSP" (ensembl peptide),
@@ -48,6 +48,7 @@ id.type = "ENSG"              # one of
                               # "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
                               # "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
                               # "hgnc" (HGNC ID [e.g. LIS1])
+                              # "external" (Ensembl external_gene_id for the species)
 
 # set variables for hypergeometric cutoff enrichment qval less than this and with greater or equal to minimum number of genes in pathway or GO term will be drawn
 kegg.qval.cutoff = 0.05
@@ -151,6 +152,8 @@ kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
 if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
 myInterestingGenes <- as.vector(unlist(my.data.in[goi.column]))
+myInterestingGenes <- myInterestingGenes[myInterestingGenes != ""]  # remove empty elements
+myInterestingGenes <- myInterestingGenes[!is.na(myInterestingGenes)]  # remove NAs
 myInterestingGenes <- unique(myInterestingGenes)
 
 
@@ -170,7 +173,7 @@ if (id.type == "Refseq_peptide") {id.lookup = 'refseq_peptide'}
 if (id.type == "Unigene") {id.lookup ='unigene'}
 if (id.type == "Uniprot") {id.lookup = 'uniprotswissprot'}
 if (id.type == "hgnc") {id.lookup = 'hgnc_symbol'}
-
+if (id.type == "external") {id.lookup = 'external_gene_name'}
 
 ensembl = useEnsembl(biomart="ensembl", dataset=ensembl.spp)
 
