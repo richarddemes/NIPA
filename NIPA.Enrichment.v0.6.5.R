@@ -39,16 +39,16 @@ keggFC.col = 2               # if keggFC = yes specify column of input table wit
 
 
 id.type = "ENSG"          # one of
-# "ENSG" (ensembl gene),
-# "ENST" (ensembl trasncript),
-# "ENSP" (ensembl peptide),
-# "Entrez"
-# "Uniprot" (UniProt/SwissProt Accession)
-# "Unigene"
-# "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
-# "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
-# "hgnc" (HGNC ID [e.g. LIS1])
-# "external" (Ensembl external_gene_id for the species)
+                              # "ENSG" (ensembl gene),
+                              # "ENST" (ensembl trasncript),
+                              # "ENSP" (ensembl peptide),
+                              # "Entrez"
+                              # "Uniprot" (UniProt/SwissProt Accession)
+                              # "Unigene"
+                              # "Refseq_mrna" (RefSeq mRNA [e.g. NM_001195597])
+                              # "Refseq_peptide" (RefSeq Protein ID [e.g. NP_001005353])
+                              # "hgnc" (HGNC ID [e.g. LIS1])
+                              # "external" (Ensembl external_gene_id for the species)
 
 # set variables for hypergeometric cutoff enrichment qval less than this and with greater or equal to minimum number of genes in pathway or GO term will be drawn
 kegg.qval.cutoff = 0.05
@@ -90,52 +90,52 @@ outfile.prefix <- goi.list # prefix attached to output files.
 ## set variables based on species given 
 ###############################################################################
 if (species == "sheep")
-{
+  {
   ensembl.spp <- "oaries_gene_ensembl"
   species.kegg.code = "oas"
-}
-
+  }
+ 
 if (species == "fly")
-{
+  {
   ensembl.spp <- "dmelanogaster_gene_ensembl"
   species.kegg.code = "dme"
-}
+  }
 
 if (species == "mouse")
-{
+  {
   ensembl.spp <- "mmusculus_gene_ensembl"
   species.kegg.code = "mmu"
-}
+  }
 
 if (species == "human")
-{
+  {
   ensembl.spp <- "hsapiens_gene_ensembl"
   species.kegg.code = "hsa"
-}
+  }
 
 if (species == "rat")
-{
+  {
   ensembl.spp <- "rnorvegicus_gene_ensembl"
   species.kegg.code = "rno"
-}
+  }
 
 if (species == "pig")
-{
+  {
   ensembl.spp <- "sscrofa_gene_ensembl"
   species.kegg.code = "ssc"
-}
+  }
 
 if (species == "zebrafish")
-{
+  {
   ensembl.spp <- "drerio_gene_ensembl"
   species.kegg.code = "dre"
-}
+  }
 
 if (species == "cow")
-{
+  {
   ensembl.spp <- "btaurus_gene_ensembl"
   species.kegg.code = "bta"
-}
+  }
 
 ##############################################################################
 # Build kegg sets 
@@ -156,25 +156,25 @@ if (keggFC == "yes"){my.data.in <- my.data.in[c(goi.column,keggFC.col)]} #drop a
 if (keggFC == "no"){my.data.in <- my.data.in[c(goi.column)]} #drop all unrequired columns from input table
 
 if (split_up_down == "yes") {
-  my.data.in.up <- my.data.in[my.data.in[2] > 0, ]
-  my.data.in.down <- my.data.in[my.data.in[2] < 0, ]
-  myInterestingGenes.up <- as.vector(unlist(my.data.in.up[1]))
-  myInterestingGenes.up <- myInterestingGenes.up[myInterestingGenes.up != ""]  # remove empty elements
-  myInterestingGenes.up <- myInterestingGenes.up[!is.na(myInterestingGenes.up)]  # remove NAs
-  myInterestingGenes.up <- unique(myInterestingGenes.up)
-  
-  myInterestingGenes.down <- as.vector(unlist(my.data.in.down[1]))
-  myInterestingGenes.down <- myInterestingGenes.down[myInterestingGenes.down != ""]  # remove empty elements
-  myInterestingGenes.down <- myInterestingGenes.down[!is.na(myInterestingGenes.down)]  # remove NAs
-  myInterestingGenes.down <- unique(myInterestingGenes.down)
-}
+                            my.data.in.up <- my.data.in[my.data.in[2] > 0, ]
+                            my.data.in.down <- my.data.in[my.data.in[2] < 0, ]
+                            myInterestingGenes.up <- as.vector(unlist(my.data.in.up[1]))
+                            myInterestingGenes.up <- myInterestingGenes.up[myInterestingGenes.up != ""]  # remove empty elements
+                            myInterestingGenes.up <- myInterestingGenes.up[!is.na(myInterestingGenes.up)]  # remove NAs
+                            myInterestingGenes.up <- unique(myInterestingGenes.up)
+                            
+                            myInterestingGenes.down <- as.vector(unlist(my.data.in.down[1]))
+                            myInterestingGenes.down <- myInterestingGenes.down[myInterestingGenes.down != ""]  # remove empty elements
+                            myInterestingGenes.down <- myInterestingGenes.down[!is.na(myInterestingGenes.down)]  # remove NAs
+                            myInterestingGenes.down <- unique(myInterestingGenes.down)
+                            }
 
 if (split_up_down == "no") {
-  myInterestingGenes <- as.vector(unlist(my.data.in[1]))
-  myInterestingGenes <- myInterestingGenes[myInterestingGenes != ""]  # remove empty elements
-  myInterestingGenes <- myInterestingGenes[!is.na(myInterestingGenes)]  # remove NAs
-  myInterestingGenes <- unique(myInterestingGenes)
-}
+                          myInterestingGenes <- as.vector(unlist(my.data.in[1]))
+                          myInterestingGenes <- myInterestingGenes[myInterestingGenes != ""]  # remove empty elements
+                          myInterestingGenes <- myInterestingGenes[!is.na(myInterestingGenes)]  # remove NAs
+                          myInterestingGenes <- unique(myInterestingGenes)
+                          }
 
 
 
@@ -214,7 +214,7 @@ all.GO.lookup <- unique(all.genes.GO[c("GO_ID","GO_Name")])
 ##########################################################
 # RUN ONCE IF DO NOT SPLIT UP/DOWN REGULATED
 if (split_up_down == "no") {
-  
+
   goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes,2]))
   
   # if keggFC = yes create foldchanges named list of log fold change values
@@ -281,11 +281,11 @@ if (split_up_down == "no") {
     BP.genes.GO.GOI <- BP.genes.GO[BP.genes.GO$ID %in% myInterestingGenes, ]
     
     BP.genes.GO.table <- as.data.frame(BP.genes.GO %>% dplyr::group_by(GO_ID) %>% 
+                                        dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
+                                        dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
+    BP.genes.GO.table.GOI <- as.data.frame(BP.genes.GO.GOI %>% dplyr::group_by(GO_ID) %>% 
                                          dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
                                          dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
-    BP.genes.GO.table.GOI <- as.data.frame(BP.genes.GO.GOI %>% dplyr::group_by(GO_ID) %>% 
-                                             dplyr::summarise(gene_ids = paste(ID, collapse=" ")) %>%
-                                             dplyr::mutate(gene_count = str_count(gene_ids, " ")+1))
     
     BP.genes.GO.merge <- merge(BP.genes.GO.table, BP.genes.GO.table.GOI, by="GO_ID",all.y=TRUE)
     BP.genes.GO.merge <- merge(BP.genes.GO.merge,all.GO.lookup, by="GO_ID", all.x=TRUE)
@@ -604,7 +604,7 @@ if (split_up_down == "no") {
       matching.kegg.sets.spp <- kegg.sets.test[c(keggres.pathways.out$KEGGpathways)] # named list of matched pathways
       matching.kegg.sets.spp.total.size <- lengths(matching.kegg.sets.spp, use.names = TRUE) # named list of the number of total number of genes in matched pathway.
       
-      
+     
       
       matching.kegg.sets.spp.df <- as.data.frame(unlist(matching.kegg.sets.spp, use.names = TRUE))
       matching.kegg.sets.spp.df$kegg.id <-  gsub("\\d+$", "", rownames(matching.kegg.sets.spp.df)) 
@@ -673,11 +673,11 @@ if (split_up_down == "no") {
         current.out <- as.data.frame(cbind(current.pathway,pval,qval,current.goi.ens.ids,current.goi.entrez.ids,current.goi.ext.ids,sample_success,population_success))
         
         pathways.hypergeometric.results <- rbind(pathways.hypergeometric.results, current.out)
-      }  
-      
+        }  
+  
       
       colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","FDR q.val","GOI.ids","Entrez.ids","External.ids","goi.count","All.genes.in.pathway.count")
-      
+  
       
       # make FDR q.val and goi count numeric and sort 
       pathways.hypergeometric.results$`FDR q.val` <- as.numeric(as.character(pathways.hypergeometric.results$`FDR q.val`))
@@ -693,7 +693,7 @@ if (split_up_down == "no") {
       ##############################################################################################  
       # draw plot of enriched pathways
       ############################################################################################## 
-      
+     
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
@@ -701,7 +701,7 @@ if (split_up_down == "no") {
         write.table( pathways.hypergeometric.results.sig ,file=kegg.sig.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
         
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
-        
+       
         ## replace FDR qval of 0 with v small number to avoid infinite values. 
         pathways.hypergeometric.results.sig <- within(pathways.hypergeometric.results.sig, `FDR q.val`[`FDR q.val` == 0] <- 1e-10)
         
@@ -746,30 +746,30 @@ if (split_up_down == "no") {
       }
       
       
+  
       
-      
-      
-      
-      ##############################################################################################  
-      # draw Pathview plots of top enriched KEGG pathways
-      ##############################################################################################    
+       
+        
+  ##############################################################################################  
+  # draw Pathview plots of top enriched KEGG pathways
+  ##############################################################################################    
       detach('package:dplyr') # to overcome occasional issues of pathview clashing with dplyr
-      
+
       
       if (stats.KEGG.fail == 1)
       {
-        top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hypergeometric.results.sig$Pathway)
-        
-        for (i in 1:nrow(top.pathways.hypergeometric.results.sig))
+      top.pathways.hypergeometric.results.sig$Pathway <- as.character(top.pathways.hypergeometric.results.sig$Pathway)
+      
+      for (i in 1:nrow(top.pathways.hypergeometric.results.sig))
         {
-          current.sig.pathway = top.pathways.hypergeometric.results.sig$Pathway[i]
-          pid <- substr(current.sig.pathway, start=1, stop=8) # get kegg ids 
-          num.pid <- substr(pid, start=4, stop=8) # get kegg ids
-          
+        current.sig.pathway = top.pathways.hypergeometric.results.sig$Pathway[i]
+        pid <- substr(current.sig.pathway, start=1, stop=8) # get kegg ids 
+        num.pid <- substr(pid, start=4, stop=8) # get kegg ids
+  
           if(num.pid != "01100") # avoid drawing entire metabolic pathway plot.
-          {
-            if (keggFC == "yes")
             {
+              if (keggFC == "yes")
+              {
               pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code, limit = list(gene=max(abs(foldchanges)), cpd=1))
               tmp.xml <- paste(pid,".xml",sep='')
               xml.tmp <- paste(this.dir,tmp.xml,sep='/')
@@ -780,10 +780,10 @@ if (split_up_down == "no") {
               file.remove(xml.tmp)
               file.remove(png.tmp)
               file.rename(old.pathview, new.pathview)
-            }
-            
-            if (keggFC == "no")
-            {
+              }
+  
+              if (keggFC == "no")
+              {
               pathview(gene.data=pathview.goi.entrez, pathway.id=pid, species=species.kegg.code)
               tmp.xml <- paste(pid,".xml",sep='')
               xml.tmp <- paste(this.dir,tmp.xml,sep='/')
@@ -795,13 +795,13 @@ if (split_up_down == "no") {
               file.remove(png.tmp)
               file.rename(old.pathview, new.pathview)
               
-            }
+              }
           }
-        }
+          }
       }
-      
-      
-      
+    
+  
+  
       if (stats.KEGG.fail == 0)
       {
         cat(c("KEGG analysis: no pathways pass statistical cutoffs"),
@@ -1425,7 +1425,7 @@ if (split_up_down == "yes") {
 # SPLIT UP/DOWN REGULATED
 # run for down regulated genes only second
 if (split_up_down == "yes") {
-  
+
   goi.entrez <-unique(as.character(all.genes.entrez[all.genes.entrez$ID %in% myInterestingGenes.down,2]))
   
   # if keggFC = yes create foldchanges named list of log fold change values
@@ -1436,12 +1436,12 @@ if (split_up_down == "yes") {
     entrez.FC.match[4] <- unlist(entrez.FC.match[4], use.names = FALSE)
     colnames(entrez.FC.match)[4] <- "FC" # rename column
     entrez_grouped <- entrez.FC.match %>% dplyr::group_by(Entrez) %>% dplyr::summarise(FC = mean(FC))
-    # fix infinite to next max value 
-    noninf <- entrez_grouped$FC[which(entrez_grouped$FC < Inf)]
+    # fix infinite to next min value 
+    noninf <- entrez_grouped$FC[which(entrez_grouped$FC  > -Inf)]
     entrez_grouped$FC[entrez_grouped$FC == "-Inf"] <- min(noninf)
     foldchanges = entrez_grouped$FC
     names(foldchanges) = as.character(entrez_grouped$Entrez)
-  }
+    }
   
   
   
