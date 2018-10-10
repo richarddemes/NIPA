@@ -298,6 +298,7 @@ if (split_up_down == "no") {
     MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
     CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
+    
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
     ########################################################################################################### 
@@ -710,7 +711,7 @@ if (split_up_down == "no") {
       
       
       kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
-      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
+     # ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
@@ -959,7 +960,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.BP !=1)
     {
-      ExcelOutList[["GO BioProcess"]] <- GO.BP.hypergeometric.results.sig
+      ExcelOutList[["GO BioProcess UP"]] <- GO.BP.hypergeometric.results.sig
       top.result.BP <- head(GO.BP.hypergeometric.results.sig,10)
       top.result.BP <- top.result.BP[order(top.result.BP$pval),]
       top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
@@ -1056,7 +1057,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.MF !=1)
     {
-      ExcelOutList[["GO MolFunction"]] <- GO.MF.hypergeometric.results.sig
+      ExcelOutList[["GO MolFunction UP"]] <- GO.MF.hypergeometric.results.sig
       top.result.MF <- head(GO.MF.hypergeometric.results.sig,10)
       top.result.MF <- top.result.MF[order(top.result.MF$pval),]
       top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
@@ -1152,7 +1153,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.CC !=1)
     {
-      ExcelOutList[["GO CellComp"]] <- GO.CC.hypergeometric.results.sig
+      ExcelOutList[["GO CellComp UP"]] <- GO.CC.hypergeometric.results.sig
       top.result.CC <- head(GO.CC.hypergeometric.results.sig,10)
       top.result.CC <- top.result.CC[order(top.result.CC$pval),]
       top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
@@ -1316,7 +1317,7 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
+      # ExcelOutList[["KEGG UP"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
@@ -1326,7 +1327,7 @@ if (split_up_down == "yes") {
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
-        ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
+        ExcelOutList[["KEGG Significant UP"]] <- pathways.hypergeometric.results.sig
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
         
         ## replace FDR qval of 0 with v small number to avoid infinite values. 
@@ -1559,7 +1560,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.BP !=1)
     {
-      ExcelOutList[["GO BioProcess"]] <- GO.BP.hypergeometric.results.sig
+      ExcelOutList[["GO BioProcess DOWN"]] <- GO.BP.hypergeometric.results.sig
       top.result.BP <- head(GO.BP.hypergeometric.results.sig,10)
       top.result.BP <- top.result.BP[order(top.result.BP$pval),]
       top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
@@ -1656,7 +1657,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.MF !=1)
     {
-      ExcelOutList[["GO MolFunction"]] <- GO.MF.hypergeometric.results.sig
+      ExcelOutList[["GO MolFunction DOWN"]] <- GO.MF.hypergeometric.results.sig
       top.result.MF <- head(GO.MF.hypergeometric.results.sig,10)
       top.result.MF <- top.result.MF[order(top.result.MF$pval),]
       top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
@@ -1752,7 +1753,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.CC !=1)
     {
-      ExcelOutList[["GO CellComp"]] <- GO.CC.hypergeometric.results.sig
+      ExcelOutList[["GO CellComp DOWN"]] <- GO.CC.hypergeometric.results.sig
       top.result.CC <- head(GO.CC.hypergeometric.results.sig,10)
       top.result.CC <- top.result.CC[order(top.result.CC$pval),]
       top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
@@ -1916,7 +1917,7 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
+      #ExcelOutList[["KEGG DOWN"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
@@ -1926,7 +1927,7 @@ if (split_up_down == "yes") {
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
-        ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
+        ExcelOutList[["KEGG Significant DOWN"]] <- pathways.hypergeometric.results.sig
         
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
         
@@ -2045,3 +2046,4 @@ if (split_up_down == "yes") {
 # write final Excel output file of GO and KEGG results
 write_xlsx(ExcelOutList, path = ExcelOutFileName, col_names = TRUE)
 ##########################################################
+
