@@ -294,9 +294,9 @@ if (split_up_down == "no") {
     #################################################################################
     # filter GO by type. 
     #################################################################################
-    BP.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "biological_process", ]
-    MF.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "molecular_function", ]
-    CC.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "cellular_component", ]
+    BP.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "biological_process", ])
+    MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
+    CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
@@ -901,9 +901,9 @@ if (split_up_down == "yes") {
     #################################################################################
     # filter GO by type. 
     #################################################################################
-    BP.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "biological_process", ]
-    MF.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "molecular_function", ]
-    CC.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "cellular_component", ]
+    BP.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "biological_process", ])
+    MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
+    CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
@@ -1501,9 +1501,9 @@ if (split_up_down == "yes") {
     #################################################################################
     # filter GO by type. 
     #################################################################################
-    BP.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "biological_process", ]
-    MF.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "molecular_function", ]
-    CC.genes.GO <- all.genes.GO[all.genes.GO$GO_component == "cellular_component", ]
+    BP.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "biological_process", ])
+    MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
+    CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
