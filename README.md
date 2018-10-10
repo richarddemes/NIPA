@@ -13,5 +13,6 @@ Gene Ontology (Enrichment using GOstats) Tables GO enriched terms GO.BP.table, G
 
 KEGG (using gage and pathview) enriched pathways table (KEGG.enrichment.analysis.results.table) pathview output e.g mmu03010.pathview.png: shows entities in user input list which are present in enriched pathway 
 
+GO and KEGG tables are combined into a single excel sheet for simple reporting.
 NIPA.report.txt: Any errors will appear here.
 
