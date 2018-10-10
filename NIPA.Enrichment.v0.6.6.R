@@ -721,7 +721,6 @@ if (split_up_down == "no") {
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
-        kegg.sig.table.out = paste(outfile.prefix,"kegg.pathway.significant.enrichment.table",sep=".")
         ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
         
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
@@ -777,6 +776,7 @@ if (split_up_down == "no") {
   ##############################################################################################  
   # draw Pathview plots of top enriched KEGG pathways
   ##############################################################################################    
+      library(dplyr)
       detach('package:dplyr') # to overcome occasional issues of pathview clashing with dplyr
 
       
@@ -1316,7 +1316,6 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      kegg.table.out = paste(outfile.prefix,"UPregulated","kegg.pathway.enrichment.table",sep=".")
       ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
@@ -1327,7 +1326,6 @@ if (split_up_down == "yes") {
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
-        kegg.sig.table.out = paste(outfile.prefix,"UPregulated","kegg.pathway.significant.enrichment.table",sep=".")
         ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
         
@@ -1918,7 +1916,6 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      kegg.table.out = paste(outfile.prefix,"DOWNregulated","kegg.pathway.enrichment.table",sep=".")
       ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
@@ -1929,7 +1926,6 @@ if (split_up_down == "yes") {
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
-        kegg.sig.table.out = paste(outfile.prefix,"DOWNregulated","kegg.pathway.significant.enrichment.table",sep=".")
         ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
         
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
