@@ -3,6 +3,7 @@
 ##############################################################
 # uncommmment to install any required packages. 
 ##############################################################
+#source("https://www.bioconductor.org/biocLite.R")
 #biocLite("biomaRt")
 #biocLite("gage")
 #biocLite("pathview")
@@ -11,9 +12,11 @@
 #biocLite("stringr")
 #biocLite("dplyr")
 #biocLite("RamiGO")
+#biocLite("readxl")
+#biocLite("writexl")
 ##############################################################
 
-source("https://www.bioconductor.org/biocLite.R")
+
 library(biomaRt)
 library(pathview)
 library(gage)
@@ -22,22 +25,26 @@ library(ggplot2)
 library(stringr)
 library(dplyr)
 library(RamiGO)
+library(readxl)
+library(writexl)
 
 
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [START]
 ## Check all or may fail.
 ###############################################################################
-goi.column = 1                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
-goi.header = "yes"             # "yes" or "no" if header on file 
+input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
 
-species = "mouse"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
+goi.column = 8                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
+goi.header = "no"             # "yes" or "no" if header on file 
+
+species = "human"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
 
 # colour pathways by expression fold change?
-keggFC = "yes"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 2               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+keggFC = "no"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
+keggFC.col = 5               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
-
+# input ID type
 id.type = "ENSG"          # one of
                               # "ENSG" (ensembl gene),
                               # "ENST" (ensembl trasncript),
@@ -155,8 +162,12 @@ kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 # Get Data
 ##############################################################################
 
-if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
-if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
+if (input.file.type == "xlsx") {my.data.in <- read_excel(goi.list, sheet=1)}
+
+if (input.file.type == "tab") {
+  if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
+  if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
+}
 
 if (keggFC == "yes"){my.data.in <- my.data.in[c(goi.column,keggFC.col)]} #drop all unrequired columns from input table
 if (keggFC == "no"){my.data.in <- my.data.in[c(goi.column)]} #drop all unrequired columns from input table
@@ -215,6 +226,13 @@ universe.size <- as.numeric(length(unique(all.genes.entrez$ID)))
 all.genes.GO <- getBM(attributes=c(id.lookup,'go_id','name_1006','namespace_1003'), mart = ensembl)
 colnames(all.genes.GO) <- c("ID","GO_ID","GO_Name","GO_component")
 all.GO.lookup <- unique(all.genes.GO[c("GO_ID","GO_Name")])
+
+##########################################################
+# set up list of dataframes that will all be written as final result Excel file
+ExcelOutList <- list()
+ExcelOutFileName <- paste(outfile.prefix,"NIPA.results.xlsx", sep=".")
+# later add sheets as ExcelOutList[["sheet name"]] <- dataframe
+# finally write as write_xlsx(ExcelOutList, path = ExcelOutFileName, col_names = TRUE)
 
 
 ##########################################################
@@ -334,7 +352,7 @@ if (split_up_down == "no") {
     }
     if (fail.GO.BP !=1)
     {
-      write.table(GO.BP.hypergeometric.results.sig, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO BioProcess"]] <- GO.BP.hypergeometric.results.sig
       top.result.BP <- head(GO.BP.hypergeometric.results.sig,10)
       top.result.BP <- top.result.BP[order(top.result.BP$pval),]
       top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
@@ -431,7 +449,7 @@ if (split_up_down == "no") {
     }
     if (fail.GO.MF !=1)
     {
-      write.table(GO.MF.hypergeometric.results.sig, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO MolFunction"]] <- GO.MF.hypergeometric.results.sig
       top.result.MF <- head(GO.MF.hypergeometric.results.sig,10)
       top.result.MF <- top.result.MF[order(top.result.MF$pval),]
       top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
@@ -527,7 +545,7 @@ if (split_up_down == "no") {
     }
     if (fail.GO.CC !=1)
     {
-      write.table(GO.CC.hypergeometric.results.sig, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO CellComp"]] <- GO.CC.hypergeometric.results.sig
       top.result.CC <- head(GO.CC.hypergeometric.results.sig,10)
       top.result.CC <- top.result.CC[order(top.result.CC$pval),]
       top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
@@ -692,7 +710,7 @@ if (split_up_down == "no") {
       
       
       kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
-      write.table( pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
+      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
@@ -704,7 +722,7 @@ if (split_up_down == "no") {
       {
         
         kegg.sig.table.out = paste(outfile.prefix,"kegg.pathway.significant.enrichment.table",sep=".")
-        write.table( pathways.hypergeometric.results.sig ,file=kegg.sig.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
+        ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
         
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
        
@@ -941,7 +959,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.BP !=1)
     {
-      write.table(GO.BP.hypergeometric.results.sig, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO BioProcess"]] <- GO.BP.hypergeometric.results.sig
       top.result.BP <- head(GO.BP.hypergeometric.results.sig,10)
       top.result.BP <- top.result.BP[order(top.result.BP$pval),]
       top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
@@ -1038,7 +1056,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.MF !=1)
     {
-      write.table(GO.MF.hypergeometric.results.sig, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO MolFunction"]] <- GO.MF.hypergeometric.results.sig
       top.result.MF <- head(GO.MF.hypergeometric.results.sig,10)
       top.result.MF <- top.result.MF[order(top.result.MF$pval),]
       top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
@@ -1134,7 +1152,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.CC !=1)
     {
-      write.table(GO.CC.hypergeometric.results.sig, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO CellComp"]] <- GO.CC.hypergeometric.results.sig
       top.result.CC <- head(GO.CC.hypergeometric.results.sig,10)
       top.result.CC <- top.result.CC[order(top.result.CC$pval),]
       top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
@@ -1299,8 +1317,7 @@ if (split_up_down == "yes") {
       
       
       kegg.table.out = paste(outfile.prefix,"UPregulated","kegg.pathway.enrichment.table",sep=".")
-      write.table( pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
-      
+      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
@@ -1311,8 +1328,7 @@ if (split_up_down == "yes") {
       {
         
         kegg.sig.table.out = paste(outfile.prefix,"UPregulated","kegg.pathway.significant.enrichment.table",sep=".")
-        write.table( pathways.hypergeometric.results.sig ,file=kegg.sig.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
-        
+        ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
         
         ## replace FDR qval of 0 with v small number to avoid infinite values. 
@@ -1545,7 +1561,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.BP !=1)
     {
-      write.table(GO.BP.hypergeometric.results.sig, file=BP.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO BioProcess"]] <- GO.BP.hypergeometric.results.sig
       top.result.BP <- head(GO.BP.hypergeometric.results.sig,10)
       top.result.BP <- top.result.BP[order(top.result.BP$pval),]
       top.result.BP$GO_Name <- as.factor(top.result.BP$GO_Name)
@@ -1642,7 +1658,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.MF !=1)
     {
-      write.table(GO.MF.hypergeometric.results.sig, file=MF.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO MolFunction"]] <- GO.MF.hypergeometric.results.sig
       top.result.MF <- head(GO.MF.hypergeometric.results.sig,10)
       top.result.MF <- top.result.MF[order(top.result.MF$pval),]
       top.result.MF$GO_Name <- as.factor(top.result.MF$GO_Name)
@@ -1738,7 +1754,7 @@ if (split_up_down == "yes") {
     }
     if (fail.GO.CC !=1)
     {
-      write.table(GO.CC.hypergeometric.results.sig, file=CC.table.out, row.names = FALSE, col.names=TRUE,sep = '\t', quote=FALSE)
+      ExcelOutList[["GO CellComp"]] <- GO.CC.hypergeometric.results.sig
       top.result.CC <- head(GO.CC.hypergeometric.results.sig,10)
       top.result.CC <- top.result.CC[order(top.result.CC$pval),]
       top.result.CC$GO_Name <- as.factor(top.result.CC$GO_Name)
@@ -1903,8 +1919,7 @@ if (split_up_down == "yes") {
       
       
       kegg.table.out = paste(outfile.prefix,"DOWNregulated","kegg.pathway.enrichment.table",sep=".")
-      write.table( pathways.hypergeometric.results,file=kegg.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
-      
+      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
@@ -1915,7 +1930,7 @@ if (split_up_down == "yes") {
       {
         
         kegg.sig.table.out = paste(outfile.prefix,"DOWNregulated","kegg.pathway.significant.enrichment.table",sep=".")
-        write.table( pathways.hypergeometric.results.sig ,file=kegg.sig.table.out, row.names = FALSE, col.names = TRUE, quote = FALSE, sep ='\t')
+        ExcelOutList[["KEGG Significant"]] <- pathways.hypergeometric.results.sig
         
         pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
         
@@ -2028,5 +2043,9 @@ if (split_up_down == "yes") {
       
     }
   }
-} 
+}
+
+##########################################################
+# write final Excel output file of GO and KEGG results
+write_xlsx(ExcelOutList, path = ExcelOutFileName, col_names = TRUE)
 ##########################################################
