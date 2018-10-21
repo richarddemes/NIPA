@@ -169,7 +169,24 @@ if (input.file.type == "tab") {
   if (goi.header == "no") {my.data.in <- read.table(goi.list,sep='\t',header = FALSE, quote = "")}
 }
 
-if (keggFC == "yes"){my.data.in <- my.data.in[c(goi.column,keggFC.col)]} #drop all unrequired columns from input table
+if (keggFC == "yes"){
+  my.data.in <- my.data.in[c(goi.column,keggFC.col)] #drop all unrequired columns from input table
+  # filter Inf and -Inf to max and min +/- 1                  
+  FC.hold <- my.data.in
+  FC.hold[FC.hold == 'Inf'] <- NA
+  FC.hold[FC.hold == '-Inf'] <- NA
+  FC.hold$TPM.log2FC <- as.numeric(FC.hold$TPM.log2FC)
+  FC.hold.min <- min(FC.hold$TPM.log2FC, na.rm=TRUE)
+  FC.hold.max <- max(FC.hold$TPM.log2FC, na.rm=TRUE)
+  FC.Inf.replace <- ceiling(FC.hold.max + 1)
+  FC.minusInf.replace <- floor(FC.hold.min - 1)
+  FC.hold <- my.data.in
+  FC.hold[FC.hold == 'Inf'] <- FC.Inf.replace
+  FC.hold[FC.hold == '-Inf'] <- FC.minusInf.replace
+  FC.hold$TPM.log2FC <- as.numeric(FC.hold$TPM.log2FC)
+  my.data.in <- FC.hold
+}
+
 if (keggFC == "no"){my.data.in <- my.data.in[c(goi.column)]} #drop all unrequired columns from input table
 
 if (split_up_down == "yes") {
