@@ -34,6 +34,7 @@ library(writexl)
 ## Check all or may fail.
 ###############################################################################
 input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
+input.file.sheetNo = 1      # sheet number for excel files. 
 
 goi.column = 8                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "no"             # "yes" or "no" if header on file 
@@ -162,7 +163,7 @@ kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 # Get Data
 ##############################################################################
 
-if (input.file.type == "xlsx") {my.data.in <- read_excel(goi.list, sheet=1)}
+if (input.file.type == "xlsx") {my.data.in <- read_excel(goi.list, sheet=input.file.sheetNo)}
 
 if (input.file.type == "tab") {
   if (goi.header == "yes") {my.data.in <- read.table(goi.list,sep='\t',header = TRUE, quote = "")}
@@ -222,7 +223,7 @@ if (split_up_down == "no") {
 if (id.type =="ENSG") {id.lookup = 'ensembl_gene_id'}
 if (id.type =="ENSP") {id.lookup = 'ensembl_peptide_id'}
 if (id.type =="ENST") {id.lookup = 'ensembl_transcript_id'}
-if (id.type == "Entrez") {id.lookup = 'entrezgene'}
+if (id.type == "Entrez") {id.lookup = 'entrezgene_id'}
 if (id.type == "Refseq_mrna") {id.lookup = 'refseq_mrna'}
 if (id.type == "Refseq_peptide") {id.lookup = 'refseq_peptide'}
 if (id.type == "Unigene") {id.lookup ='unigene'}
@@ -234,7 +235,7 @@ if (id.type == "external") {id.lookup = 'external_gene_name'}
 ##########################################################
 # collect ensembl ids and GO terms via biomart
 ensembl = useEnsembl(biomart="ensembl", dataset=ensembl.spp) # Get Gene Id info from ensembl 
-all.genes <- getBM(attributes=c(id.lookup, 'entrezgene', 'external_gene_name'), mart = ensembl)
+all.genes <- getBM(attributes=c(id.lookup, 'entrezgene_id', 'external_gene_name'), mart = ensembl)
 colnames(all.genes) <- c("ID","Entrez","Name")
 all.genes.entrez <- na.omit(all.genes)
 all.genes.entrez <- all.genes.entrez[all.genes.entrez$ID!="",]
