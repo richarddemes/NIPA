@@ -737,7 +737,9 @@ if (split_up_down == "no") {
       ##############################################################################################  
       # draw plot of enriched pathways
       ############################################################################################## 
-     
+      if (nrow(pathways.hypergeometric.results.sig)==0){cat(c("KEGG analysis identified no enriched pathways: Probably too few IDs"),
+          file=run.report, append=TRUE, sep='\n')}
+      
       if (nrow(pathways.hypergeometric.results.sig)>0)
       {
         
