@@ -34,7 +34,7 @@ library(writexl)
 ## Check all or may fail.
 ###############################################################################
 input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
-input.file.sheetNo = 17      # sheet number for excel files. 
+input.file.sheetNo = 9      # sheet number for excel files. 
 goi.column = 17                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes"             # "yes" or "no" if header on file 
 
@@ -42,7 +42,7 @@ species = "sheep"             #currently one of "mouse", "human", "rat", "pig", 
 
 # colour pathways by expression fold change?
 keggFC = "yes"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 35               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+keggFC.col = 27               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 # input ID type
 id.type = "ENSG"          # one of
@@ -157,6 +157,9 @@ kegg.gsets.spp <- kegg.gsets(species = species.kegg.code, id.type = "kegg")
 kegg.sets.test <- kegg.gsets.spp$kg.sets
 kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 
+kegg.sets.test.ids <- as.data.frame(unlist(kegg.sets.test))
+kegg.sets.test.ids.list <- as.vector(unique(as.character(kegg.sets.test.ids$`unlist(kegg.sets.test)`)))
+universe.KEGG <- as.numeric(length(kegg.sets.test.ids.list))
 
 ##############################################################################
 # Get Data
@@ -248,6 +251,17 @@ all.genes.GO <- getBM(attributes=c(id.lookup,'go_id','name_1006','namespace_1003
 colnames(all.genes.GO) <- c("ID","GO_ID","GO_Name","GO_component")
 all.GO.lookup <- unique(all.genes.GO[c("GO_ID","GO_Name")])
 
+
+##########################################################
+all.pathview.entrez <- rep.int(1, nrow(all.genes.entrez))
+names(all.pathview.entrez) = all.genes.entrez$Entrez 
+keggres.all = gage(all.pathview.entrez, gsets=kegg.sets.test, same.dir=TRUE) # determine kegg membership of all genes. 
+
+keggres.pathways.all <- as.data.frame(keggres.all)
+keggres.pathways.all.out <- keggres.pathways.all[keggres.pathways.all$greater.set.size > 0, ]
+universe.KEGG <- as.numeric(sum(keggres.pathways.all.out$greater.set.size)) #number of genes in any pathway.
+
+
 ##########################################################
 # set up list of dataframes that will all be written as final result Excel file
 ExcelOutList <- list()
@@ -319,6 +333,9 @@ if (split_up_down == "no") {
     MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
     CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
+    universe.GOMF <- as.numeric(length(unique(MF.genes.GO$ID)))
+    universe.GOCC <- as.numeric(length(unique(CC.genes.GO$ID)))
+    universe.GOBP <- as.numeric(length(unique(BP.genes.GO$ID)))
     
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
@@ -351,7 +368,7 @@ if (split_up_down == "no") {
       
       sample_success = as.numeric(current.GO.BP$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.BP$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOBP-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes)))
       
       
@@ -448,7 +465,7 @@ if (split_up_down == "no") {
       current.GO.MF = MF.genes.GO.merge[i,]
       sample_success = as.numeric(current.GO.MF$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.MF$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOMF-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes)))
       
       
@@ -545,7 +562,7 @@ if (split_up_down == "no") {
       current.GO.CC = CC.genes.GO.merge[i,]
       sample_success = as.numeric(current.GO.CC$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.CC$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOCC-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes)))
       
       pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
@@ -628,6 +645,7 @@ if (split_up_down == "no") {
   
   if (doKEGG == "yes")
   {
+    
     pathview.goi.entrez <- rep.int(1, length(goi.entrez))
     
     names(pathview.goi.entrez) = goi.entrez 
@@ -696,7 +714,7 @@ if (split_up_down == "no") {
         
         sample_success = as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ])) 
         population_success = as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
-        population_not_success = (universe.size-population_success)
+        population_not_success = (universe.KEGG-population_success)
         sample_size = as.numeric(length(unique(myInterestingGenes)))
         
         
@@ -733,7 +751,7 @@ if (split_up_down == "no") {
       
       
       kegg.table.out = paste(outfile.prefix,"kegg.pathway.enrichment.table",sep=".")
-     # ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
+      ExcelOutList[["KEGG"]] <- pathways.hypergeometric.results
       
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
@@ -962,7 +980,7 @@ if (split_up_down == "yes") {
       
       sample_success = as.numeric(current.GO.BP$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.BP$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOBP-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes.up)))
       
       
@@ -1061,7 +1079,7 @@ if (split_up_down == "yes") {
       current.GO.MF = MF.genes.GO.merge[i,]
       sample_success = as.numeric(current.GO.MF$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.MF$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOMF-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes.up)))
       
       
@@ -1158,7 +1176,7 @@ if (split_up_down == "yes") {
       current.GO.CC = CC.genes.GO.merge[i,]
       sample_success = as.numeric(current.GO.CC$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.CC$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOCC-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes.up)))
       
       pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
@@ -1308,7 +1326,7 @@ if (split_up_down == "yes") {
         
         sample_success = as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ])) 
         population_success = as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
-        population_not_success = (universe.size-population_success)
+        population_not_success = (universe.KEGG-population_success)
         sample_size = as.numeric(length(unique(myInterestingGenes.up)))
         
         
@@ -1345,7 +1363,7 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      # ExcelOutList[["KEGG UP"]] <- pathways.hypergeometric.results
+      ExcelOutList[["KEGG UP"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
@@ -1565,7 +1583,7 @@ if (split_up_down == "yes") {
       
       sample_success = as.numeric(current.GO.BP$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.BP$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOBP-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes.down)))
       
       
@@ -1662,7 +1680,7 @@ if (split_up_down == "yes") {
       current.GO.MF = MF.genes.GO.merge[i,]
       sample_success = as.numeric(current.GO.MF$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.MF$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOMF-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes.down)))
       
       
@@ -1759,7 +1777,7 @@ if (split_up_down == "yes") {
       current.GO.CC = CC.genes.GO.merge[i,]
       sample_success = as.numeric(current.GO.CC$GOI.gene_count) #  goi count in GO term 
       population_success = as.numeric(current.GO.CC$ALL.gene_count) # all gene count in GO term
-      population_not_success = (universe.size-population_success)
+      population_not_success = (universe.GOCC-population_success)
       sample_size = as.numeric(length(unique(myInterestingGenes.down)))
       
       pval <- phyper(sample_success,population_success,population_not_success,sample_size, lower.tail=FALSE,log.p=FALSE)
@@ -1909,7 +1927,7 @@ if (split_up_down == "yes") {
         
         sample_success = as.numeric(nrow(goi.matching.kegg.sets.spp.df[goi.matching.kegg.sets.spp.df$kegg.id == current.pathway, ])) 
         population_success = as.numeric(nrow(matching.kegg.sets.spp.df[matching.kegg.sets.spp.df$kegg.id == current.pathway, ]))
-        population_not_success = (universe.size-population_success)
+        population_not_success = (universe.KEGG-population_success)
         sample_size = as.numeric(length(unique(myInterestingGenes.down)))
         
         
@@ -1946,7 +1964,7 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      #ExcelOutList[["KEGG DOWN"]] <- pathways.hypergeometric.results
+      ExcelOutList[["KEGG DOWN"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
