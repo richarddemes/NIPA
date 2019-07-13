@@ -949,6 +949,10 @@ if (split_up_down == "yes") {
     MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
     CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
+    
+    universe.GOMF <- as.numeric(length(unique(MF.genes.GO$ID)))
+    universe.GOCC <- as.numeric(length(unique(CC.genes.GO$ID)))
+    universe.GOBP <- as.numeric(length(unique(BP.genes.GO$ID)))
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
     ########################################################################################################### 
@@ -1552,6 +1556,9 @@ if (split_up_down == "yes") {
     MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
     CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
+    universe.GOMF <- as.numeric(length(unique(MF.genes.GO$ID)))
+    universe.GOCC <- as.numeric(length(unique(CC.genes.GO$ID)))
+    universe.GOBP <- as.numeric(length(unique(BP.genes.GO$ID)))
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
     ########################################################################################################### 
