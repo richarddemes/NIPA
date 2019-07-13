@@ -34,7 +34,7 @@ library(writexl)
 ## Check all or may fail.
 ###############################################################################
 input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
-input.file.sheetNo = 9      # sheet number for excel files. 
+input.file.sheetNo = 16      # sheet number for excel files. 
 goi.column = 17                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes"             # "yes" or "no" if header on file 
 
@@ -42,7 +42,7 @@ species = "sheep"             #currently one of "mouse", "human", "rat", "pig", 
 
 # colour pathways by expression fold change?
 keggFC = "yes"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 27               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+keggFC.col = 35               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 # input ID type
 id.type = "ENSG"          # one of
@@ -66,7 +66,7 @@ min.genes.cutoff = 2
 doGO = "yes"                  # yes or no.     Run hypergeometric test to find enriched GO terms in BP, MF and CC category
 doKEGG = "yes"                # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
-split_up_down = "no"         # yes or no.     If yes AND results contain a Fold change value as named in keggFC.col above then genes up/down regulated will be analysed seperately. 
+split_up_down = "yes"         # yes or no.     If yes AND results contain a Fold change value as named in keggFC.col above then genes up/down regulated will be analysed seperately. 
 
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [END]
@@ -949,10 +949,10 @@ if (split_up_down == "yes") {
     MF.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "molecular_function", ])
     CC.genes.GO <- unique(all.genes.GO[all.genes.GO$GO_component == "cellular_component", ])
     
-    
     universe.GOMF <- as.numeric(length(unique(MF.genes.GO$ID)))
     universe.GOCC <- as.numeric(length(unique(CC.genes.GO$ID)))
     universe.GOBP <- as.numeric(length(unique(BP.genes.GO$ID)))
+    
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
     ########################################################################################################### 
@@ -1323,7 +1323,7 @@ if (split_up_down == "yes") {
       
       # run phyper for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
       working.pathways <- unique(goi.matching.kegg.sets.spp.df$kegg.id)
-      pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0), "goi.count"= numeric(0), "all.count"= numeric(0))
+      pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"pval"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0), "goi.count"= numeric(0), "all.count"= numeric(0))
       
       for (i in 1:length(working.pathways)){
         current.pathway = working.pathways[i]
@@ -1357,7 +1357,7 @@ if (split_up_down == "yes") {
       }  
       
       pathways.hypergeometric.results$pval <- as.numeric(as.character(pathways.hypergeometric.results$pval))  
-      pathways.hypergeometric.results$`FDR q.val` <- p.adjust(pathways.hypergeometric.results$p.val, method = "fdr", n = length(pathways.hypergeometric.results$p.val))
+      pathways.hypergeometric.results$`FDR q.val` <- p.adjust(pathways.hypergeometric.results$pval, method = "fdr", n = length(pathways.hypergeometric.results$pval))
       colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","GOI.ids","Entrez.ids","External.ids","goi.count","All.genes.in.pathway.count","FDR q.val")
       
       
@@ -1378,7 +1378,7 @@ if (split_up_down == "yes") {
       {
         
         ExcelOutList[["KEGG Significant UP"]] <- pathways.hypergeometric.results.sig
-        pathways.hypergeometric.results.sig$p.val <- as.numeric(as.character(pathways.hypergeometric.results.sig$p.val))
+        pathways.hypergeometric.results.sig$pval <- as.numeric(as.character(pathways.hypergeometric.results.sig$pval))
         
         ## replace FDR qval of 0 with v small number to avoid infinite values. 
         pathways.hypergeometric.results.sig <- within(pathways.hypergeometric.results.sig, `FDR q.val`[`FDR q.val` == 0] <- 1e-10)
@@ -1559,6 +1559,7 @@ if (split_up_down == "yes") {
     universe.GOMF <- as.numeric(length(unique(MF.genes.GO$ID)))
     universe.GOCC <- as.numeric(length(unique(CC.genes.GO$ID)))
     universe.GOBP <- as.numeric(length(unique(BP.genes.GO$ID)))
+    
     ########################################################################################################### 
     #  Biological Process test GO enrichment by hypergeometric test
     ########################################################################################################### 
@@ -1927,7 +1928,7 @@ if (split_up_down == "yes") {
       
       # run phyper for each pathway in list and generate table of pathways passing cut off after FDR qvalue calculation
       working.pathways <- unique(goi.matching.kegg.sets.spp.df$kegg.id)
-      pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"p.val"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0), "goi.count"= numeric(0), "all.count"= numeric(0))
+      pathways.hypergeometric.results <- data.frame("Pathway"= character(0),"pval"= numeric(0),"ID"= character(0), "entrez.ids"= numeric(0), "external.ids"= character(0), "goi.count"= numeric(0), "all.count"= numeric(0))
       
       for (i in 1:length(working.pathways)){
         current.pathway = working.pathways[i]
@@ -1961,7 +1962,7 @@ if (split_up_down == "yes") {
       }  
       
       pathways.hypergeometric.results$pval <- as.numeric(as.character(pathways.hypergeometric.results$pval))  
-      pathways.hypergeometric.results$`FDR q.val` <- p.adjust(pathways.hypergeometric.results$p.val, method = "fdr", n = length(pathways.hypergeometric.results$p.val))
+      pathways.hypergeometric.results$`FDR q.val` <- p.adjust(pathways.hypergeometric.results$pval, method = "fdr", n = length(pathways.hypergeometric.results$pval))
       colnames(pathways.hypergeometric.results) <- c("Pathway","p.val","GOI.ids","Entrez.ids","External.ids","goi.count","All.genes.in.pathway.count","FDR q.val")
       
       
@@ -1971,7 +1972,7 @@ if (split_up_down == "yes") {
       pathways.hypergeometric.results <-  pathways.hypergeometric.results[with(pathways.hypergeometric.results, order(pathways.hypergeometric.results$`FDR q.val`)), ]
       
       
-      ExcelOutList[["KEGG DOWN"]] <- pathways.hypergeometric.results
+      #ExcelOutList[["KEGG DOWN"]] <- pathways.hypergeometric.results
       pathways.hypergeometric.results.sig <- pathways.hypergeometric.results[pathways.hypergeometric.results$`FDR q.val` < kegg.qval.cutoff & pathways.hypergeometric.results$goi.count >= min.genes.cutoff, ]
       
       ##############################################################################################  
