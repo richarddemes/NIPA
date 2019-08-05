@@ -36,7 +36,7 @@ library(writexl)
 ## Input Variables -- USER TO CHANGE [START]
 ## Check all or may fail.
 ###############################################################################
-input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
+input.file.type = "xlsx"      # one of xlsx or tab (tab delimited)
 input.file.sheetNo = 1      # sheet number for excel files. 
 goi.column = 4                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes"             # "yes" or "no" if header on file 
