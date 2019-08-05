@@ -2104,6 +2104,18 @@ if (split_up_down == "yes") {
   }
 }
 
+
+                           
+                           
+##########################################################
+#Add gene descriptions to output file
+all.descriptions <- getBM(attributes=c(id.lookup, 'external_gene_name','description'), mart = ensembl)
+if (split_up_down == 'yes') {myInterestingGenes <-c(myInterestingGenes.up,myInterestingGenes.down)}
+names(all.descriptions)<- c("GeneID","External Name", "Description")
+myInterestingGenes.descriptions <- all.descriptions[all.descriptions$GeneID %in% myInterestingGenes, ]
+ExcelOutList[["Gene Descriptions"]] <- myInterestingGenes.descriptions
+                          
+                           
 ##########################################################
 # write final Excel output file of GO and KEGG results
 write_xlsx(ExcelOutList, path = ExcelOutFileName, col_names = TRUE)
