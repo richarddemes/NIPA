@@ -36,7 +36,7 @@ library(writexl)
 ## Input Variables -- USER TO CHANGE [START]
 ## Check all or may fail.
 ###############################################################################
-input.file.type = "xlsx"      # one of xlsx or tab (tab delimited)
+input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
 input.file.sheetNo = 1      # sheet number for excel files. 
 goi.column = 4                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes"             # "yes" or "no" if header on file 
@@ -1010,7 +1010,7 @@ if (split_up_down == "yes") {
     {
       ExcelOutList[["GO BioProcess UP"]] <- GO.BP.hypergeometric.results.sig.UP
       top.result.BP.UP <- head(GO.BP.hypergeometric.results.sig.UP,10)
-      top.result.BP.UP <- top.result.BP[order(top.result.BP.UP$pval),]
+      top.result.BP.UP <- top.result.BP.UP[order(top.result.BP.UP$pval),]
       top.result.BP.UP$GO_Name <- as.factor(top.result.BP.UP$GO_Name)
       top.result.BP.UP$GO_Name <- factor(top.result.BP.UP$GO_Name, levels = top.result.BP.UP$GO_Name)
       
@@ -1110,7 +1110,7 @@ if (split_up_down == "yes") {
     {
       ExcelOutList[["GO MolFunction UP"]] <- GO.MF.hypergeometric.results.sig.UP
       top.result.MF.UP <- head(GO.MF.hypergeometric.results.sig.UP,10)
-      top.result.MF.UP <- top.result.MF[order(top.result.MF.UP$pval),]
+      top.result.MF.UP <- top.result.MF.UP[order(top.result.MF.UP$pval),]
       top.result.MF.UP$GO_Name <- as.factor(top.result.MF.UP$GO_Name)
       top.result.MF.UP$GO_Name <- factor(top.result.MF.UP$GO_Name, levels = top.result.MF.UP$GO_Name)
       
@@ -1210,7 +1210,7 @@ if (split_up_down == "yes") {
     {
       ExcelOutList[["GO Cell Comp UP"]] <- GO.CC.hypergeometric.results.sig.UP
       top.result.CC.UP <- head(GO.CC.hypergeometric.results.sig.UP,10)
-      top.result.CC.UP <- top.result.CC[order(top.result.CC.UP$pval),]
+      top.result.CC.UP <- top.result.CC.UP[order(top.result.CC.UP$pval),]
       top.result.CC.UP$GO_Name <- as.factor(top.result.CC.UP$GO_Name)
       top.result.CC.UP$GO_Name <- factor(top.result.CC.UP$GO_Name, levels = top.result.CC.UP$GO_Name)
       
@@ -1628,7 +1628,7 @@ if (split_up_down == "yes") {
     {
       ExcelOutList[["GO BioProcess DOWN"]] <- GO.BP.hypergeometric.results.sig.DOWN
       top.result.BP.DOWN <- head(GO.BP.hypergeometric.results.sig.DOWN,10)
-      top.result.BP.DOWN <- top.result.BP[order(top.result.BP.DOWN$pval),]
+      top.result.BP.DOWN <- top.result.BP.DOWN[order(top.result.BP.DOWN$pval),]
       top.result.BP.DOWN$GO_Name <- as.factor(top.result.BP.DOWN$GO_Name)
       top.result.BP.DOWN$GO_Name <- factor(top.result.BP.DOWN$GO_Name, levels = top.result.BP.DOWN$GO_Name)
       
@@ -1728,7 +1728,7 @@ if (split_up_down == "yes") {
     {
       ExcelOutList[["GO MolFunction DOWN"]] <- GO.MF.hypergeometric.results.sig.DOWN
       top.result.MF.DOWN <- head(GO.MF.hypergeometric.results.sig.DOWN,10)
-      top.result.MF.DOWN <- top.result.MF[order(top.result.MF.DOWN$pval),]
+      top.result.MF.DOWN <- top.result.MF.DOWN[order(top.result.MF.DOWN$pval),]
       top.result.MF.DOWN$GO_Name <- as.factor(top.result.MF.DOWN$GO_Name)
       top.result.MF.DOWN$GO_Name <- factor(top.result.MF.DOWN$GO_Name, levels = top.result.MF.DOWN$GO_Name)
       
@@ -1828,7 +1828,7 @@ if (split_up_down == "yes") {
     {
       ExcelOutList[["GO Cell Comp DOWN"]] <- GO.CC.hypergeometric.results.sig.DOWN
       top.result.CC.DOWN <- head(GO.CC.hypergeometric.results.sig.DOWN,10)
-      top.result.CC.DOWN <- top.result.CC[order(top.result.CC.DOWN$pval),]
+      top.result.CC.DOWN <- top.result.CC.DOWN[order(top.result.CC.DOWN$pval),]
       top.result.CC.DOWN$GO_Name <- as.factor(top.result.CC.DOWN$GO_Name)
       top.result.CC.DOWN$GO_Name <- factor(top.result.CC.DOWN$GO_Name, levels = top.result.CC.DOWN$GO_Name)
       
