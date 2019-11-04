@@ -4,17 +4,15 @@
 ##############################################################
 # uncommmment to install any required packages. 
 ##############################################################
-#source("https://www.bioconductor.org/biocLite.R")
-#biocLite("biomaRt")
-#biocLite("gage")
-#biocLite("pathview")
-#biocLite("gageData")
-#biocLite("ggplot2")
-#biocLite("stringr")
-#biocLite("dplyr")
-#biocLite("RamiGO")
-#biocLite("readxl")
-#biocLite("writexl")
+BiocManager::install("biomaRt")
+BiocManager::install("gage")
+BiocManager::install("pathview")
+BiocManager::install("gageData")
+BiocManager::install("ggplot2")
+BiocManager::install("stringr")
+BiocManager::install("dplyr")
+BiocManager::install("readxl")
+BiocManager::install("writexl")
 ##############################################################
 
 
@@ -25,7 +23,6 @@ library(gageData)
 library(ggplot2)
 library(stringr)
 library(dplyr)
-library(RamiGO)
 library(readxl)
 library(writexl)
 
@@ -37,18 +34,18 @@ library(writexl)
 ## Check all or may fail.
 ###############################################################################
 input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
-input.file.sheetNo = 1      # sheet number for excel files. 
-goi.column = 4                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
+input.file.sheetNo = 13      # sheet number for excel files. 
+goi.column = 2                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes"             # "yes" or "no" if header on file 
 
-species = "human"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
+species = "cow"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
 
 # colour pathways by expression fold change?
 keggFC = "yes"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 12               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+keggFC.col = 6               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 # input ID type
-id.type = "hgnc"          # one of
+id.type = "ENSG"          # one of
 # "ENSG" (ensembl gene),
 # "ENST" (ensembl trasncript),
 # "ENSP" (ensembl peptide),
@@ -69,7 +66,7 @@ min.genes.cutoff = 2
 doGO = "yes"                  # yes or no.     Run hypergeometric test to find enriched GO terms in BP, MF and CC category
 doKEGG = "yes"                # yes or no.     Run hypergeometric test to find and plot enriched KEGG pathways and visualise using PathView
 
-split_up_down = "yes"         # yes or no.     If yes AND results contain a Fold change value as named in keggFC.col above then genes up/down regulated will be analysed seperately. 
+split_up_down = "no"         # yes or no.     If yes AND results contain a Fold change value as named in keggFC.col above then genes up/down regulated will be analysed seperately. 
 ###############################################################################
 ## Input Variables -- USER TO CHANGE [END]
 ###############################################################################
@@ -435,9 +432,6 @@ if (doGO == "yes")
       print(sig.BP.plot.ALL)
       dev.off()
       
-      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-      GO.BP.top.DAG.ALL <- paste(outfile.prefix,"GO.BP.top.DAG",sep='.')
-      svgRes <- getAmigoTree(top.result.BP$GO_ID, color="red", pvalues =top.result.BP$pval, filename=GO.BP.top.DAG.ALL, picType="svg", saveResult=TRUE)
     }
   }
   
@@ -532,10 +526,7 @@ if (doGO == "yes")
       print(sig.MF.plot.ALL)
       dev.off()
       
-      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-      GO.MF.top.DAG.ALL <- paste(outfile.prefix,"GO.MF.top.DAG",sep='.')
-      svgRes <- getAmigoTree(top.result.MF$GO_ID, color="red", pvalues =top.result.MF$pval, filename=GO.MF.top.DAG.ALL, picType="svg", saveResult=TRUE)
-    }
+      }
   }
   
   ########################################################################################################### 
@@ -628,10 +619,7 @@ if (doGO == "yes")
       print(sig.CC.plot.ALL)
       dev.off()
       
-      #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-      GO.CC.top.DAG.ALL <- paste(outfile.prefix,"GO.CC.top.DAG",sep='.')
-      svgRes <- getAmigoTree(top.result.CC$GO_ID, color="red", pvalues =top.result.CC$pval, filename=GO.CC.top.DAG.ALL, picType="svg", saveResult=TRUE)
-    }
+       }
   }
   
   
@@ -1048,10 +1036,7 @@ if (split_up_down == "yes") {
         print(sig.BP.plot.UP)
         dev.off()
         
-        #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-        GO.BP.top.DAG.UP <- paste(outfile.prefix,"UPregulated","GO.BP.top.DAG",sep='.')
-        svgRes <- getAmigoTree(top.result.BP$GO_ID, color="red", pvalues =top.result.BP$pval, filename=GO.BP.top.DAG.UP, picType="svg", saveResult=TRUE)
-      }
+          }
     }
     
     ########################################################################################################### 
@@ -1148,10 +1133,7 @@ if (split_up_down == "yes") {
         print(sig.MF.plot.UP)
         dev.off()
         
-        #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-        GO.MF.top.DAG.UP <- paste(outfile.prefix,"UPregulated","GO.MF.top.DAG",sep='.')
-        svgRes <- getAmigoTree(top.result.MF$GO_ID, color="red", pvalues =top.result.MF$pval, filename=GO.MF.top.DAG.UP, picType="svg", saveResult=TRUE)
-      }
+        }
     }    
     
     ########################################################################################################### 
@@ -1248,10 +1230,8 @@ if (split_up_down == "yes") {
         print(sig.CC.plot.UP)
         dev.off()
         
-        #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-        GO.CC.top.DAG.UP <- paste(outfile.prefix,"UPregulated","GO.CC.top.DAG",sep='.')
-        svgRes <- getAmigoTree(top.result.CC$GO_ID, color="red", pvalues =top.result.CC$pval, filename=GO.CC.top.DAG.UP, picType="svg", saveResult=TRUE)
-      }
+       
+         }
     }
     
     
@@ -1497,7 +1477,7 @@ if (split_up_down == "yes") {
   
 } 
 
-}
+
 
 
 
@@ -1666,10 +1646,7 @@ if (split_up_down == "yes") {
         print(sig.BP.plot.DOWN)
         dev.off()
         
-        #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-        GO.BP.top.DAG.DOWN <- paste(outfile.prefix,"DOWNregulated","GO.BP.top.DAG",sep='.')
-        svgRes <- getAmigoTree(top.result.BP$GO_ID, color="red", pvalues =top.result.BP$pval, filename=GO.BP.top.DAG.DOWN, picType="svg", saveResult=TRUE)
-      }
+       }
     }
     
     ########################################################################################################### 
@@ -1766,10 +1743,7 @@ if (split_up_down == "yes") {
         print(sig.MF.plot.DOWN)
         dev.off()
         
-        #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-        GO.MF.top.DAG.DOWN <- paste(outfile.prefix,"DOWNregulated","GO.MF.top.DAG",sep='.')
-        svgRes <- getAmigoTree(top.result.MF$GO_ID, color="red", pvalues =top.result.MF$pval, filename=GO.MF.top.DAG.DOWN, picType="svg", saveResult=TRUE)
-      }
+       }
     }    
     
     ########################################################################################################### 
@@ -1866,9 +1840,6 @@ if (split_up_down == "yes") {
         print(sig.CC.plot.DOWN)
         dev.off()
         
-        #### plot SVG of Directed Acyclic graph of 15 most signiifcnat GO terms.
-        GO.CC.top.DAG.DOWN <- paste(outfile.prefix,"DOWNregulated","GO.CC.top.DAG",sep='.')
-        svgRes <- getAmigoTree(top.result.CC$GO_ID, color="red", pvalues =top.result.CC$pval, filename=GO.CC.top.DAG.DOWN, picType="svg", saveResult=TRUE)
       }
     }
     
