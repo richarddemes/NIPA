@@ -1,6 +1,6 @@
 ---
 title: "NIPA Report"
-author: "Author:Richard Emes see https://github.com/ADAC-UoN/NIPA for code"
+author: "Author:Richard Emes see https://github.com/richarddemes/NIPA/ for code"
 output: html_notebook
 ---     
 
@@ -40,15 +40,15 @@ library(DT)
 ## Input Variables -- USER TO CHANGE [START]
 ## Check all or may fail.
 input.file.type = "xlsx"      # one of xlsx (excel must be sheet 1) or tab (tab delimited)
-input.file.sheetNo = 13      # sheet number for excel files. 
-goi.column = 2                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
+input.file.sheetNo = 2      # sheet number for excel files. 
+goi.column = 1                # if results are from analysis and are a column of a larger table give input column else will assume is column 1 or a single column assumes tab delimited
 goi.header = "yes"             # "yes" or "no" if header on file 
 
-species = "cow"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
+species = "sheep"             #currently one of "mouse", "human", "rat", "pig", "zebrafish, cow, fly, sheep", 
 
 # colour pathways by expression fold change?
 keggFC = "yes"                 # yes or no. will colour enriched KEGG pathways by FC data [specify column below]
-keggFC.col = 6               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
+keggFC.col = 11               # if keggFC = yes specify column of input table with FC values  assumes tab delimited
 
 # input ID type
 id.type = "ENSG"          # one of
@@ -170,6 +170,10 @@ kegg.sets.spp = kegg.gsets.spp$sigmet.idx
 kegg.sets.test.ids <- as.data.frame(unlist(kegg.sets.test))
 kegg.sets.test.ids.list <- as.vector(unique(as.character(kegg.sets.test.ids$`unlist(kegg.sets.test)`)))
 universe.KEGG <- as.numeric(length(kegg.sets.test.ids.list))
+
+
+ # problematic pathways do not draw == problem with pathveiw "04723", "04215", "05206", "01100"
+problematic.pathways <- c("04723","04215","05206","01100")
 ```
 
 
@@ -198,8 +202,8 @@ if (keggFC == "yes"){
   FC.Inf.replace <- ceiling(FC.hold.max + 1)
   FC.minusInf.replace <- floor(FC.hold.min - 1)
   FC.hold <- my.data.in
-  FC.hold[FC.hold == 'Inf'] <- FC.Inf.replace
-  FC.hold[FC.hold == '-Inf'] <- FC.minusInf.replace
+  FC.hold[FC.hold == 'Inf'] <- as.character(FC.Inf.replace)
+  FC.hold[FC.hold == '-Inf'] <- as.character(FC.minusInf.replace)
   FC.hold$FC <- as.numeric(FC.hold$FC)
   my.data.in <- FC.hold
 }
@@ -846,7 +850,8 @@ Output:`` `r ExcelOutFileName` ``
   ##############################################################################################  
   # draw Pathview plots of top enriched KEGG pathways
   ##############################################################################################    
-      library(dplyr)
+
+           library(dplyr)
       detach('package:dplyr') # to overcome occasional issues of pathview clashing with dplyr
 
       
@@ -859,9 +864,10 @@ Output:`` `r ExcelOutFileName` ``
         current.sig.pathway = top.pathways.hypergeometric.results.sig$Pathway[i]
         pid <- substr(current.sig.pathway, start=1, stop=8) # get kegg ids 
         num.pid <- substr(pid, start=4, stop=8) # get kegg ids
-  
-          if(num.pid != "01100") # avoid drawing entire metabolic pathway plot.
-            {
+        problem.pathway.check = num.pid %in% problematic.pathways
+        
+          if(problem.pathway.check==FALSE)# avoid drawing problem pathways if TRUE.
+              {
               if (keggFC == "yes")
               {
               pathview(gene.data=foldchanges, pathway.id=pid, species=species.kegg.code, limit = list(gene=max(abs(foldchanges)), cpd=1))
@@ -1557,8 +1563,9 @@ if (split_up_down == "yes") {
           current.sig.pathway = top.pathways.hypergeometric.results.sig.UP$Pathway[i]
           pid <- substr(current.sig.pathway, start=1, stop=8) # get kegg ids 
           num.pid <- substr(pid, start=4, stop=8) # get kegg ids
-          
-          if(num.pid != "01100") # avoid drawing entire metabolic pathway plot.
+          problem.pathway.check = num.pid %in% problematic.pathways
+        
+          if(problem.pathway.check==FALSE)# avoid drawing problem pathways if TRUE.
           {
             if (keggFC == "yes")
             {
@@ -2278,8 +2285,9 @@ if (split_up_down == "yes") {
           current.sig.pathway = top.pathways.hypergeometric.results.sig.DOWN$Pathway[i]
           pid <- substr(current.sig.pathway, start=1, stop=8) # get kegg ids 
           num.pid <- substr(pid, start=4, stop=8) # get kegg ids
-          
-          if(num.pid != "01100") # avoid drawing entire metabolic pathway plot.
+          problem.pathway.check = num.pid %in% problematic.pathways
+        
+          if(problem.pathway.check==FALSE)# avoid drawing problem pathways if TRUE.
           {
             if (keggFC == "yes")
             {
